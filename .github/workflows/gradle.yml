@@ -62,13 +62,24 @@ jobs:
       - name: docker Hub push
         run: docker push ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server:latest
 
+      # 7.
+      - name: Deploy to EC2 instance
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server:latest
+            docker-compose down
+            docker-compose up -d
+
+            # 태그가 <none>인 이미지 삭제
+            docker images | grep '<none>' | awk '{ print $3 }' | xargs -r docker rmi
 
 
 
-      # Docker build & Push : Docker 이미지를 빌드하고, Docker Hub에 로그인한 후 이미지를 푸시합니다. - 3,4,5번 삭제 후 적용
-#      - name: Docker build & push to Docker hub
- #       run: |
-  #        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-   #       docker build -t ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server .
-    #      docker push ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server
 
+ 
