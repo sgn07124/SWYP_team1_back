@@ -37,8 +37,23 @@ jobs:
         run: chmod +x ./gradlew
         shell: bash # Gradle wrapper 스크립트에 실행 권한을 부여합니다. 이를 통해 빌드 명령을 실행할 수 있습니다.
 
-      - name: Build with Gradle Wrapper
-        run: ./gradlew build
+#      - name: Build with Gradle Wrapper
+#        run: ./gradlew build
+
+      - name: Clean and Build with Gradle Wrapper
+        run: ./gradlew bootJar # Gradle Wrapper를 사용하여 Java 프로젝트를 빌드합니다.
+
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYY-MM-DDTHH-mm-ss
+          utcOffset: "+09:00"
+        # 현재 시간을 가져오는 액션을 실행합니다. 이를 통해 빌드 시점의 시간 정보를 확보할 수 있습니다.
+
+      - name: Show Current Time
+        run: echo "CurrentTime=$"
+        shell: bash # 앞서 가져온 현재 시간을 출력합니다. 이는 로깅 및 디버깅 목적으로 유용할 수 있습니다.
 
       # Docker build & Push
       - name: Docker build & push to Docker hub
