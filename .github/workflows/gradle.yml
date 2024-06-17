@@ -62,6 +62,27 @@ jobs:
       - name: docker Hub push
         run: docker push ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server:latest
 
+      # 7. EC2 인스턴스 접속 및 애플리케이션 실행
+      - name: Application Run
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+          script: |
+            sudo docker kill swyp_team1_server
+            sudo docker rm -f swyp_team1_server
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server
+            
+            sudo docker run -p 8080:8080 \
+            --name swyp_team1_server \
+            -e SPRING_DATASOURCE_URL=${{ secrets.DB_URL }} \
+            -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} \
+            -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -d ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server
+
       # 7. Deploy to EC2 instance
       - name: Deploy to EC2 instance
         uses: appleboy/ssh-action@master
