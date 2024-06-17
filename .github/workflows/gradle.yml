@@ -69,19 +69,20 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-
           script: |
-            sudo docker kill swyp_team1_server
-            sudo docker rm -f swyp_team1_server
-            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server
+            sudo docker ps -q | xargs --no-run-if-empty sudo docker stop
+            sudo docker ps -a -q | xargs --no-run-if-empty sudo docker rm
+
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server || true
             
-            sudo docker run -p 8080:8080 \
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server:latest
+            
+            sudo docker run -d -p 8080:8080 \
             --name swyp_team1_server \
             -e SPRING_DATASOURCE_URL=${{ secrets.DB_URL }} \
             -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} \
             -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            -d ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server
+            ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server:latest
 
       
 
