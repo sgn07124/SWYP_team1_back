@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.CLOUD_AWS_USERNAME }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # pem 키
           port: 22
-          # 도커 작업 수정
+          # 도커 작업
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker pull ${{ secrets.DOCKER_USERNAME }}/springjjs:latest
