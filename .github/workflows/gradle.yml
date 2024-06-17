@@ -83,29 +83,7 @@ jobs:
             -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -d ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server
 
-      # 7. Deploy to EC2 instance
-      - name: Deploy to EC2 instance
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-           docker pull ${{ secrets.DOCKER_USERNAME }}/swyp_team1_server:latest
-           
-           cd /home/ubuntu/your-app  # docker-compose.yml 파일이 있는 디렉토리로 이동
-           docker-compose down
-           
-           # 중지된 컨테이너 및 사용 중인 이미지를 강제로 삭제
-           docker container prune -f
-           docker image prune -f
-           
-           docker-compose up -d
-           
-           # 태그가 <none>인 이미지 삭제
-           docker images | grep '<none>' | awk '{ print $3 }' | xargs -r docker rmi -f
+      
 
 
 
