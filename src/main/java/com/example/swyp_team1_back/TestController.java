@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TestController {
 
-    @GetMapping("/cicdTest")
+    @GetMapping("/")
     public String home() {
-        return "Hello CICD with Docker";
+        return "Hello swyp team1!!!";
     }
 }
