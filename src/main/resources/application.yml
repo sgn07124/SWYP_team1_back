@@ -6,7 +6,7 @@ spring:
         format_sql: 'true'
     show-sql: 'true'
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     open-in-view: 'false'
   application:
     name: SWYP_team1_back
