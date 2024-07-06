@@ -1,0 +1,43 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: 'true'
+    show-sql: 'true'
+    hibernate:
+      ddl-auto: create
+    open-in-view: 'false'
+  application:
+    name: SWYP_team1_back
+  datasource:
+    password: swypswyp1111
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: swypteam1
+    url: jdbc:mysql://swyp-team1-back.cb6aokwc8vaf.ap-northeast-2.rds.amazonaws.com:3306/swygTeam1?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&serverTimezone=Asia/Seoul
+
+server:
+  shutdown: graceful
+  servlet:
+    context-path: /
+  port: '8080'
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          nodeValue: trace
+          descriptor:
+            sql: trace
+
+cloud:
+  aws:
+    s3:
+      bucket: swyp-team1-s3-bucket
+    credentials:
+      accessKey: AKIA5FTZEK3JYQYPYBNN
+      secretKey: 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
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
