@@ -11,31 +11,31 @@ import lombok.Setter;
 public class CreateUserDTO {
 
     @NotNull(message = "이메일은 필수 항목입니다.")
-    @Email(message = "유효한 이메일 형식이 아닙니다.")
+    @Email(message = "올바르지 않는 이메일 주소입니다.")
     private String email;
 
     @NotNull(message = "비밀번호는 필수 항목입니다.")
-    @Size(min = 8, message = "비밀번호는 최소 8자리 이상이어야 합니다.")
-    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).+$", message = "비밀번호는 영문과 숫자를 포함해야 합니다.")
+    @Size(min = 8, message = "비밀번호는 숫자와 영문을 조합하여 8자 이상으로 적어주세요.")
+    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).+$", message = "비밀번호는 숫자와 영문을 조합하여 8자 이상으로 적어주세요.")
     private String password;
 
-    @NotNull(message = "비밀번호 재확인은 필수 항목입니다.")
+    @NotNull(message = "비밀번호가 맞지 않습니다. 다시 입력히주세요.")
     private String rePassword;
 
-    @NotNull(message = "이름은 필수 항목입니다.")
-    @Pattern(regexp = "^[가-힣]{1,30}$|^[a-zA-Z]{1,30}$", message = "이름은 한글 또는 영문으로 입력해야 하며, 한글 자음과 모음만 입력할 수 없고, 한글과 영문을 동시에 입력할 수 없습니다.")
+    @NotNull(message = "이름을 잘못 작성하였습니다. 다시 입력해주세요.")
+    @Pattern(regexp = "^[가-힣]{1,30}$|^[a-zA-Z]{1,30}$", message = "이름을 잘못 작성하였습니다. 다시 입력해주세요.")
     private String name;
 
-    @NotNull(message = "전화번호는 필수 항목입니다.")
-    @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "전화번호는 010-****-**** 형식으로 입력해야 합니다.")
+    @NotNull(message = "올바르지 않는 연락처입니다. 숫자로만 다시 입력해주세요.")
+    @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "올바르지 않는 연락처입니다. 숫자로만 다시 입력해주세요.")
     private String phone;
 
     @NotNull(message = "이용약관 동의는 필수 항목입니다.")
-    private boolean agreeTOS;
+    private Boolean agreeTOS;
 
     @NotNull(message = "개인정보 처리방침 동의는 필수 항목입니다.")
-    private boolean agreePICU;
+    private Boolean agreePICU;
 
-    private boolean agreeMarketing;
+    private Boolean agreeMarketing;
 
 }

@@ -2,15 +2,22 @@ package com.example.swyp_team1_back.domain.user.controller;
 
 import com.example.swyp_team1_back.domain.user.dto.CreateUserDTO;
 import com.example.swyp_team1_back.domain.user.service.UserService;
+import com.example.swyp_team1_back.global.common.response.Response;
+import com.example.swyp_team1_back.global.common.response.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @ResponseBody
@@ -19,15 +26,20 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "회원가입 및 로그인 컨트롤러", description = "로그인, 회원가입 등 회원 정보 관련 API")
 public class UserController {
 
-    private static UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    public UserController(UserService userService) {
-        UserController.userService = userService;
-    }
 
     @PostMapping("/signup")
-    @Operation(summary = "일반 회원가입", description = "회원은 이메일로 일반 회원가입을 한다.")
+    @Operation(summary = "일반 회원가입", description = "회원은 이메일과 비밀번호로 일반 회원가입을 한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "회원가입 성공"),
+            @ApiResponse(responseCode = "4001", description = "Validation Error"),
+            @ApiResponse(responseCode = "4002", description = "이미 등록된 이메일입니다."),
+            @ApiResponse(responseCode = "4003", description = "비밀번호가 맞지 않습니다. 다시 입력해주세요.(rePassword)"),
+            @ApiResponse(responseCode = "4004", description = "이미 등록된 연락처입니다."),
+            @ApiResponse(responseCode = "4005", description = "필수 약관동의에 동의해주세요.(이용약관 동의)"),
+            @ApiResponse(responseCode = "4006", description = "필수 약관동의에 동의해주세요.(개인정보 처리방침 동의)")
+    })
     @Parameters({
             @Parameter(name = "email", description = "이메일 형식이어야 합니다.", example = "test1@naver.com"),
             @Parameter(name = "password", description = "비밀번호는 최소 8자리 이상이어야 합니다.", example = "abcd1234"),
@@ -38,9 +50,20 @@ public class UserController {
             @Parameter(name = "agreePICU", description = "개인정보 처리방침 동의는 필수 항목입니다.", example = "true"),
             @Parameter(name = "agreeMarketing", description = "마케팅 이메일 수신 동의는 선택 항목입니다.", example = "true or false"),
     })
-    public ResponseEntity<String> signUp(@RequestBody @Valid CreateUserDTO dto) {
+
+    public ResponseEntity<Response<Void>> signUp(@RequestBody @Valid CreateUserDTO dto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<Response.ErrorDetail> errors = bindingResult.getFieldErrors().stream()
+                    .map(error -> {
+                        Response.ErrorDetail detail = new Response.ErrorDetail();
+                        detail.setField(error.getField());
+                        detail.setReason(error.getDefaultMessage());
+                        return detail;
+                    }).collect(Collectors.toList());
+            return ResponseUtil.createValidationErrorResponse("회원가입에 실패하였습니다.", errors);
+        }
         userService.signUp(dto);
-        return ResponseEntity.ok("회원가입 성공!");
+        return ResponseUtil.createSuccessResponseWithoutPayload("회원가입에 성공하였습니다.");
     }
 
 }
