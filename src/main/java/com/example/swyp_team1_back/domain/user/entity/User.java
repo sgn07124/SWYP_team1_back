@@ -5,6 +5,7 @@ import com.example.swyp_team1_back.domain.tip.entity.Tip;
 import com.example.swyp_team1_back.domain.user.dto.CreateUserDTO;
 import com.example.swyp_team1_back.global.common.entity.BaseTimeEntity;
 import com.example.swyp_team1_back.global.common.response.CustomFieldException;
+import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -64,15 +65,15 @@ public class User extends BaseTimeEntity {
 
     public static User createUser(CreateUserDTO dto, PasswordEncoder passwordEncoder, String defaultProfileImageUrl) {
         if (!dto.getAgreeTOS()) {
-            throw new CustomFieldException("agreeTOS", "필수 약관동의에 동의해주세요.");
+            throw new CustomFieldException("agreeTOS", "필수 약관동의에 동의해주세요.", ErrorCode.AGREE_TOS_NOT_CHECKED);
         }
 
         if (!dto.getAgreePICU()) {
-            throw new CustomFieldException("agreePICU", "필수 약관동의에 동의해주세요.");
+            throw new CustomFieldException("agreePICU", "필수 약관동의에 동의해주세요.", ErrorCode.AGREE_PICU_NOT_CHECKED);
         }
 
         if (!dto.getPassword().equals(dto.getRePassword())) {
-            throw new CustomFieldException("rePassword", "비밀번호가 맞지 않습니다. 다시 입력해주세요.");
+            throw new CustomFieldException("rePassword", "비밀번호가 맞지 않습니다. 다시 입력해주세요.", ErrorCode.PASSWORD_UNMATCHED);
         }
 
         User user = new User();

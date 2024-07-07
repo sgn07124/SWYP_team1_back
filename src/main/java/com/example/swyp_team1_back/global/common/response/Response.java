@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @RequiredArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse<T> {
+public class Response<T> {
 
     private boolean success;
     private String message;
@@ -32,8 +32,8 @@ public class ApiResponse<T> {
         }
     }
 
-    public static <T> ApiResponse<T> successWithPayload(String message, T payload) {
-        ApiResponse<T> response = new ApiResponse<>();
+    public static <T> Response<T> successWithPayload(String message, T payload) {
+        Response<T> response = new Response<>();
         response.setSuccess(true);
         response.setMessage(message);
         response.setCode(ErrorCode.SUCCESS.getCode());
@@ -42,8 +42,8 @@ public class ApiResponse<T> {
         return response;
     }
 
-    public static ApiResponse<Void> successWithoutPayload(String message) {
-        ApiResponse<Void> response = new ApiResponse<>();
+    public static Response<Void> successWithoutPayload(String message) {
+        Response<Void> response = new Response<>();
         response.setSuccess(true);
         response.setMessage(message);
         response.setCode(ErrorCode.SUCCESS.getCode());
@@ -52,8 +52,8 @@ public class ApiResponse<T> {
         return response;
     }
 
-    public static ApiResponse<Void> validationError(String message, List<ErrorDetail> errors) {
-        ApiResponse<Void> response = new ApiResponse<>();
+    public static Response<Void> validationError(String message, List<ErrorDetail> errors) {
+        Response<Void> response = new Response<>();
         response.setSuccess(false);
         response.setMessage(message);
         response.setCode(ErrorCode.VALIDATION_ERROR.getCode());
@@ -62,8 +62,8 @@ public class ApiResponse<T> {
         return response;
     }
 
-    public static ApiResponse<Void> exceptionError(String message, ErrorCode errorCode, String field, String reason) {
-        ApiResponse<Void> response = new ApiResponse<>();
+    public static Response<Void> exceptionError(String message, ErrorCode errorCode, String field, String reason) {
+        Response<Void> response = new Response<>();
         response.setSuccess(false);
         response.setMessage(message);
         response.setCode(errorCode.getCode());

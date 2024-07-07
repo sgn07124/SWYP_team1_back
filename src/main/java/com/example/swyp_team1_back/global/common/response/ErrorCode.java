@@ -2,15 +2,19 @@ package com.example.swyp_team1_back.global.common.response;
 
 public enum ErrorCode {
 
-    SUCCESS(200, "SUCCESS"),
+    SUCCESS(200, "Success"),
 
-    // 클라이언트 에러 코드
+    // 유효성 에러
     VALIDATION_ERROR(4001, "Validation Error"),
-    ILLEGAL_ARGUMENT_ERROR(4002, "Illegal Argument Error"),
-    ILLEGAL_STATE_ERROR(4003, "Illegal State Error"),
 
-    // 서버 에러 코드
-    INTERNAL_SERVER_ERROR(5001, "Internal Server Error");
+    // USER 관련 예외처리 에러
+    EMAIL_ALREADY_EXISTS(4002, "Email Already Exists"),
+    PASSWORD_UNMATCHED(4003, "Password Unmatched"),
+    PHONE_ALREADY_EXISTS(4004, "Phone Already Exists"),
+    AGREE_TOS_NOT_CHECKED(4005, "Agree TOS Not Checked"),
+    AGREE_PICU_NOT_CHECKED(4006, "Agree PICU Not Checked"),
+    ILLEGAL_ARGUMENT_ERROR(4007, "Illegal Argument Error"),
+    ILLEGAL_STATE_ERROR(4008, "Illegal State Error");
 
     private final int code;
     private final String message;
