@@ -17,6 +17,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private static final String DEFAULT_PROFILE_IMAGE_URL = "https://swyp-team1-s3-bucket.s3.ap-northeast-2.amazonaws.com/default_profile.png";
+
     @Transactional
     public User signUp(CreateUserDTO signUpRequest) {
 
@@ -28,7 +30,7 @@ public class UserService {
             throw new IllegalStateException("이미 사용 중인 전화번호 입니다.");
         }
 
-        User user = User.createUser(signUpRequest, passwordEncoder);
+        User user = User.createUser(signUpRequest, passwordEncoder, DEFAULT_PROFILE_IMAGE_URL);
 
         return userRepository.save(user);
     }

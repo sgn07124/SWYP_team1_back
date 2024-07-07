@@ -67,7 +67,7 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user")
     private List<Cs> csList = new ArrayList<>();
 
-    public static User createUser(CreateUserDTO dto, PasswordEncoder passwordEncoder) {
+    public static User createUser(CreateUserDTO dto, PasswordEncoder passwordEncoder, String defaultProfileImageUrl) {
         if (!dto.isAgreeTOS() || !dto.isAgreePICU()) {
             throw new IllegalArgumentException("이용약관 및 개인정보 처리방침 동의는 필수");
         }
@@ -86,7 +86,7 @@ public class User extends BaseTimeEntity {
 
         user.role = Role.USER;
         user.nickname = dto.getEmail();
-        user.imgUrl = "later";
+        user.imgUrl = defaultProfileImageUrl;
         user.fromSocial = false;
         return user;
     }
