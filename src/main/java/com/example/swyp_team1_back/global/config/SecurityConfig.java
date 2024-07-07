@@ -34,7 +34,7 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/user/signup").permitAll()
+                        .requestMatchers("/", "/swagger-ui/**","/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup").permitAll()
                         .anyRequest().authenticated());
 
         return http.build();
