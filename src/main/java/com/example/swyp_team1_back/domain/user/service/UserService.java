@@ -3,6 +3,7 @@ package com.example.swyp_team1_back.domain.user.service;
 import com.example.swyp_team1_back.domain.user.dto.CreateUserDTO;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
+import com.example.swyp_team1_back.global.common.response.CustomFieldException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,11 +24,11 @@ public class UserService {
     public User signUp(CreateUserDTO signUpRequest) {
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            throw new IllegalStateException("이미 사용 중인 이메일 입니다.");
+            throw new CustomFieldException("email", "이미 등록된 이메일입니다.");
         }
 
         if (userRepository.existsByPhone(signUpRequest.getPhone())) {
-            throw new IllegalStateException("이미 사용 중인 전화번호 입니다.");
+            throw new CustomFieldException("phone", "이미 등록된 연락처입니다.");
         }
 
         User user = User.createUser(signUpRequest, passwordEncoder, DEFAULT_PROFILE_IMAGE_URL);
