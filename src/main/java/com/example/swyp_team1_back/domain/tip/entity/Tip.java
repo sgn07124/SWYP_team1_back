@@ -1,7 +1,9 @@
 package com.example.swyp_team1_back.domain.tip.entity;
 
 import com.example.swyp_team1_back.domain.bookmark.entity.BookmarkTip;
+import com.example.swyp_team1_back.domain.tip.dto.CreateTipDTO;
 import com.example.swyp_team1_back.domain.user.entity.User;
+import com.example.swyp_team1_back.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "Tip")
 @NoArgsConstructor
-public class Tip {
+public class Tip extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,10 +39,10 @@ public class Tip {
     private int actCnt;
 
     @Column(name = "complete_YN", nullable = false)
-    private boolean completeYN;  // 완료 여부. true:완료. False:진행중
+    private Boolean completeYN;  // 완료 여부. true:완료. False:진행중
 
     @Column(name = "is_Mine", nullable = false)
-    private boolean isMine;  // 내가 작성한 꿀팁인지 아닌지. true:내꺼. false:남에꺼
+    private Boolean isMine;  // 내가 작성한 꿀팁인지 아닌지. true:내꺼. false:남에꺼
 
     @OneToMany(mappedBy = "tip")
     private List<BookmarkTip> bookmarkTips = new ArrayList<>();
@@ -49,9 +51,26 @@ public class Tip {
     @JoinColumn(name = "id")  // 주인
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cateId")  // 주인
     private Category category;
+
+    public static Tip createUserTip(CreateTipDTO dto) {  // 로그인 구현되면 후처리 해야됨
+        Tip tip = new Tip();
+        tip.tipLink = dto.getTipLink();
+        tip.tipTitle = dto.getTipTitle();
+        tip.actCnt = dto.getActCnt();
+        tip.deadLine_start = LocalDate.parse(dto.getDeadLine_start());
+        tip.deadLine_end = LocalDate.parse(dto.getDeadLine_end());
+
+        tip.completeYN = false;
+        tip.isMine = true;
+        return tip;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 
 
 }
