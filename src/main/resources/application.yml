@@ -29,6 +29,10 @@ logging:
           nodeValue: trace
           descriptor:
             sql: trace
+      springframework:
+        web: debug
+        security: debug
+
 
 cloud:
   aws:
