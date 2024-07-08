@@ -57,8 +57,8 @@ public class User extends BaseTimeEntity {
 
     private Boolean fromSocial;  // // 소셜 회원가입 여부 true:소셜, false:일반
 
-    @OneToMany(mappedBy = "user")
-    private List<Tip> tips = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<Tip> tips = new ArrayList<>();  // 회원 탈퇴 시, 작성했던 팁들도 삭제
 
     @OneToMany(mappedBy = "user")
     private List<Cs> csList = new ArrayList<>();

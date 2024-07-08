@@ -14,7 +14,9 @@ public enum ErrorCode {
     AGREE_TOS_NOT_CHECKED(4005, "Agree TOS Not Checked"),
     AGREE_PICU_NOT_CHECKED(4006, "Agree PICU Not Checked"),
     ILLEGAL_ARGUMENT_ERROR(4007, "Illegal Argument Error"),
-    ILLEGAL_STATE_ERROR(4008, "Illegal State Error");
+    ILLEGAL_STATE_ERROR(4008, "Illegal State Error"),
+
+    FAIL_CREATE_USER_TIP(3001, "Fail to create user tip");
 
     private final int code;
     private final String message;
