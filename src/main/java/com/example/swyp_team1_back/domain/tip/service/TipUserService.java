@@ -81,7 +81,7 @@ public class TipUserService {
         String end = tip.getDeadLine_end().format(formatter);
         dto.setPeriodDate(start + " - " + end);
         dto.setD_day((int) ChronoUnit.DAYS.between(LocalDate.now(), tip.getDeadLine_end()));
-        //dto.setActCnt_checked(tip.getActCnt());  // 추후 수정
+        dto.setActCnt_checked(tip.getActCntChecked());
         return dto;
     }
 }

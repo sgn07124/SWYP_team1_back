@@ -38,6 +38,9 @@ public class Tip extends BaseTimeEntity {
     @Column(name = "actCnt", nullable = false)
     private int actCnt;
 
+    @Column(name = "actCnt_checked", nullable = false)
+    private int actCntChecked;
+
     @Column(name = "complete_YN", nullable = false)
     private Boolean completeYN;  // 완료 여부. true:완료. False:진행중
 
@@ -60,6 +63,7 @@ public class Tip extends BaseTimeEntity {
         tip.tipLink = dto.getTipLink();
         tip.tipTitle = dto.getTipTitle();
         tip.actCnt = dto.getActCnt();
+        tip.actCntChecked = 0;
         tip.deadLine_start = LocalDate.parse(dto.getDeadLine_start());
         tip.deadLine_end = LocalDate.parse(dto.getDeadLine_end());
 
