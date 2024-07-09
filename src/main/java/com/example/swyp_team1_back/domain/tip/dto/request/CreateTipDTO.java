@@ -1,4 +1,4 @@
-package com.example.swyp_team1_back.domain.tip.dto;
+package com.example.swyp_team1_back.domain.tip.dto.request;
 
 import com.example.swyp_team1_back.domain.tip.entity.Category;
 import jakarta.validation.constraints.Email;

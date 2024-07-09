@@ -1,7 +1,7 @@
 package com.example.swyp_team1_back.domain.tip.entity;
 
 import com.example.swyp_team1_back.domain.bookmark.entity.BookmarkTip;
-import com.example.swyp_team1_back.domain.tip.dto.CreateTipDTO;
+import com.example.swyp_team1_back.domain.tip.dto.request.CreateTipDTO;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import com.example.swyp_team1_back.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -72,9 +72,7 @@ public class Tip extends BaseTimeEntity {
         this.category = category;
     }
 
-    public static void deleteTip(Long tipId) {
 
-    }
 
 
 }
