@@ -87,5 +87,8 @@ public class Tip extends BaseTimeEntity {
 
     public void updateActCntChecked(int actCntChecked) {
         this.actCntChecked = actCntChecked;
+        if (this.actCntChecked == this.actCnt) {
+            this.completeYN = true;
+        }
     }
 }
