@@ -22,6 +22,7 @@ public class Response<T> {
 
     @Getter @Setter
     @RequiredArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ErrorDetail {
         private String field;
         private String reason;

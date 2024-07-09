@@ -49,4 +49,19 @@ public class TipUserController {
             return ResponseUtil.createExceptionResponse("팁 등록 실패", ErrorCode.FAIL_CREATE_USER_TIP, e.getMessage());
         }
     }
+
+    @DeleteMapping("/{tip_id}")
+    @Operation(summary = "팁 삭제", description = "팁 id 값으로 팁을 삭제한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "팁 삭제 성공"),
+            @ApiResponse(responseCode = "3002", description = "팁 삭제 실패")
+    })
+    public ResponseEntity<Response<Void>> deleteTip(@PathVariable Long tip_id) {  // SecurityConfig의 경로 인가 수정 필요
+        try {
+            tipUserService.deleteTip(tip_id);
+            return ResponseUtil.createSuccessResponseWithoutPayload("팁 삭제 성공");
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("팁 삭제 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
+        }
+    }
 }
