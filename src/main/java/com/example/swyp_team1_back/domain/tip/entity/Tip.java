@@ -72,5 +72,9 @@ public class Tip extends BaseTimeEntity {
         this.category = category;
     }
 
+    public static void deleteTip(Long tipId) {
+
+    }
+
 
 }
