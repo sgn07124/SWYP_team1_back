@@ -78,4 +78,27 @@ public class TipUserController {
             return ResponseUtil.createExceptionResponse("팁 조회 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
         }
     }
+
+    @PutMapping("/{tip_id}")
+    @Operation(summary = "팁 수정", description = "로그인 한 회원은 tip_id에 해당되는 팁을 수정할 수 있다. 팁 수정 시, 팁 상세 조회로 팁을 가져온 뒤 수정이 되어야 한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "팁 수정 성공"),
+            @ApiResponse(responseCode = "3003", description = "팁 수정 실패 - 팁을 찾을 수 없음")
+    })
+    @Parameters({
+            @Parameter(name = "tipLink", description = "링크를 삽입해주세요."),
+            @Parameter(name = "tipTitle", description = "팁의 제목을 적어주세요."),
+            @Parameter(name = "category", description = "카테고리를 설정해주세요."),
+            @Parameter(name = "actCnt", description = "실천 횟수를 적어주세요."),
+            @Parameter(name = "deadLine_start", description = "데드라인을 설정해주세요."),
+            @Parameter(name = "deadLine_end", description = "데드라인을 설정해주세요.")
+    })
+    public ResponseEntity<? extends Response<? extends Object>> updateTip(@PathVariable Long tip_id, @RequestBody CreateTipDTO dto) {  // SecurityConfig의 경로 인가 수정 필요
+        try {
+            tipUserService.updateTip(tip_id, dto);
+            return ResponseUtil.createSuccessResponseWithoutPayload("팁 수정 성공");
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("팁 수정 실패", ErrorCode.FAIL_UPDATE_TIP, e.getMessage());
+        }
+    }
 }

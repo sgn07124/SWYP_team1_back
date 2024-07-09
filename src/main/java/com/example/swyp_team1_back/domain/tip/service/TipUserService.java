@@ -8,6 +8,7 @@ import com.example.swyp_team1_back.domain.tip.repository.CategoryRepository;
 import com.example.swyp_team1_back.domain.tip.repository.TipRepository;
 import com.example.swyp_team1_back.global.common.response.CustomFieldException;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
+import com.example.swyp_team1_back.global.common.response.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -49,6 +50,18 @@ public class TipUserService {
                 .orElseThrow(() -> new CustomFieldException("tipId", "팁을 찾을 수 없음", ErrorCode.FAIL_FIND_TIP));
 
         return convertToDetailDto(tip);
+    }
+
+    @Transactional
+    public void updateTip(Long tipId, CreateTipDTO dto) {
+        Tip tip = tipRepository.findById(tipId)
+                .orElseThrow(() -> new ResourceNotFoundException("팁을 찾을 수 없음"));
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("카테고리 Id가 잘못됨"));
+
+        tip.updateTip(dto, category);
+        tipRepository.save(tip);
+
     }
 
     private TipDetailDTO convertToDetailDto(Tip tip) {

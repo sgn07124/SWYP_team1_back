@@ -72,7 +72,14 @@ public class Tip extends BaseTimeEntity {
         this.category = category;
     }
 
-
+    public void updateTip(CreateTipDTO dto, Category category) {
+        this.tipLink = dto.getTipLink();
+        this.tipTitle = dto.getTipTitle();
+        this.actCnt = dto.getActCnt();
+        this.deadLine_start = LocalDate.parse(dto.getDeadLine_start());
+        this.deadLine_end = LocalDate.parse(dto.getDeadLine_end());
+        this.setCategory(category);
+    }
 
 
 }

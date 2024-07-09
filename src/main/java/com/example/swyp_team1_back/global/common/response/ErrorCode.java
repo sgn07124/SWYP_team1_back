@@ -17,7 +17,8 @@ public enum ErrorCode {
     ILLEGAL_STATE_ERROR(4008, "Illegal State Error"),
 
     FAIL_CREATE_USER_TIP(3001, "Fail to create user tip"),
-    FAIL_FIND_TIP(3002, "Fail to find tip");
+    FAIL_FIND_TIP(3002, "Fail to find tip"),
+    FAIL_UPDATE_TIP(3003, "Fail to update tip");
 
     private final int code;
     private final String message;
