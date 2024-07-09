@@ -1,8 +1,8 @@
 package com.example.swyp_team1_back.domain.tip.controller;
 
-import com.example.swyp_team1_back.domain.tip.dto.CreateTipDTO;
+import com.example.swyp_team1_back.domain.tip.dto.request.CreateTipDTO;
+import com.example.swyp_team1_back.domain.tip.dto.response.TipDetailDTO;
 import com.example.swyp_team1_back.domain.tip.service.TipUserService;
-import com.example.swyp_team1_back.domain.user.dto.CreateUserDTO;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.common.response.Response;
 import com.example.swyp_team1_back.global.common.response.ResponseUtil;
@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 
@@ -54,7 +53,7 @@ public class TipUserController {
     @Operation(summary = "팁 삭제", description = "팁 id 값으로 팁을 삭제한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "팁 삭제 성공"),
-            @ApiResponse(responseCode = "3002", description = "팁 삭제 실패")
+            @ApiResponse(responseCode = "3002", description = "팁 삭제 실패 - 팁을 찾을 수 없음")
     })
     public ResponseEntity<Response<Void>> deleteTip(@PathVariable Long tip_id) {  // SecurityConfig의 경로 인가 수정 필요
         try {
@@ -62,6 +61,21 @@ public class TipUserController {
             return ResponseUtil.createSuccessResponseWithoutPayload("팁 삭제 성공");
         } catch (Exception e) {
             return ResponseUtil.createExceptionResponse("팁 삭제 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
+        }
+    }
+
+    @GetMapping("/{tip_id}")
+    @Operation(summary = "팁 상세 조회", description = "팁 id 값으로 팁을 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "팁 조회 성공"),
+            @ApiResponse(responseCode = "3002", description = "팁 조회 실패 - 팁을 찾을 수 없음")
+    })
+    public ResponseEntity<? extends Response<? extends Object>> getTipDetail(@PathVariable Long tip_id) {  // SecurityConfig의 경로 인가 수정 필요
+        try {
+            TipDetailDTO tipDetailDTO = tipUserService.getTipDetail(tip_id);
+            return ResponseUtil.createSuccessResponseWithPayload("팁 조회 성공", tipDetailDTO);
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("팁 조회 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
         }
     }
 }
