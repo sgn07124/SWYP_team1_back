@@ -12,12 +12,14 @@ import com.example.swyp_team1_back.global.common.response.ResourceNotFoundExcept
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +66,25 @@ public class TipUserService {
 
     }
 
+    @Transactional
+    public void updateActCntChecked(Long tipId, int actCntChecked) {
+        Tip tip = tipRepository.findById(tipId)
+                .orElseThrow(() -> new ResourceNotFoundException("팁을 찾을 수 없음"));
+
+        tip.updateActCntChecked(actCntChecked);
+        tipRepository.save(tip);
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * ?")  // 매일 자정에 실행
+    public void updateCheckCompleteStatus() {
+        List<Tip> tips = tipRepository.findAll();
+        for (Tip tip : tips) {
+            tip.checkCompleteStatus();
+            tipRepository.save(tip);
+        }
+    }
+
     private TipDetailDTO convertToDetailDto(Tip tip) {
         TipDetailDTO dto = new TipDetailDTO();
         dto.setId(tip.getId());
@@ -81,7 +102,7 @@ public class TipUserService {
         String end = tip.getDeadLine_end().format(formatter);
         dto.setPeriodDate(start + " - " + end);
         dto.setD_day((int) ChronoUnit.DAYS.between(LocalDate.now(), tip.getDeadLine_end()));
-        //dto.setActCnt_checked(tip.getActCnt());  // 추후 수정
+        dto.setActCnt_checked(tip.getActCntChecked());
         return dto;
     }
 }

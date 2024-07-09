@@ -38,6 +38,9 @@ public class Tip extends BaseTimeEntity {
     @Column(name = "actCnt", nullable = false)
     private int actCnt;
 
+    @Column(name = "actCnt_checked", nullable = false)
+    private int actCntChecked;
+
     @Column(name = "complete_YN", nullable = false)
     private Boolean completeYN;  // 완료 여부. true:완료. False:진행중
 
@@ -60,6 +63,7 @@ public class Tip extends BaseTimeEntity {
         tip.tipLink = dto.getTipLink();
         tip.tipTitle = dto.getTipTitle();
         tip.actCnt = dto.getActCnt();
+        tip.actCntChecked = 0;
         tip.deadLine_start = LocalDate.parse(dto.getDeadLine_start());
         tip.deadLine_end = LocalDate.parse(dto.getDeadLine_end());
 
@@ -81,5 +85,22 @@ public class Tip extends BaseTimeEntity {
         this.setCategory(category);
     }
 
+    public void updateActCntChecked(int actCntChecked) {
+        this.actCntChecked = actCntChecked;
+        if (this.actCntChecked == this.actCnt) {  // 데드라인이 남아 있지만, 현재 진행 중인 실천 횟수와 총 실천 횟수가 같아진 경우.
+            this.completeYN = true;
+        }
+    }
 
+    /**
+     * 현재 진행 중인 실천횟수가 남아 있지만 현재 날짜가 deadLine_end를 넘어간 경우
+     */
+    public void checkCompleteStatus() {
+        LocalDate now = LocalDate.now();
+        if ((this.actCntChecked < this.actCnt) && now.isAfter(this.deadLine_end)) {
+            this.completeYN = true;
+        } else {
+            this.completeYN = false;
+        }
+    }
 }
