@@ -64,6 +64,15 @@ public class TipUserService {
 
     }
 
+    @Transactional
+    public void updateActCntChecked(Long tipId, int actCntChecked) {
+        Tip tip = tipRepository.findById(tipId)
+                .orElseThrow(() -> new ResourceNotFoundException("팁을 찾을 수 없음"));
+
+        tip.updateActCntChecked(actCntChecked);
+        tipRepository.save(tip);
+    }
+
     private TipDetailDTO convertToDetailDto(Tip tip) {
         TipDetailDTO dto = new TipDetailDTO();
         dto.setId(tip.getId());

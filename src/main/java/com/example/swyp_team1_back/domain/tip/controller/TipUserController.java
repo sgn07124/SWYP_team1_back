@@ -1,6 +1,7 @@
 package com.example.swyp_team1_back.domain.tip.controller;
 
 import com.example.swyp_team1_back.domain.tip.dto.request.CreateTipDTO;
+import com.example.swyp_team1_back.domain.tip.dto.request.UpdateTipCntCheckedDTO;
 import com.example.swyp_team1_back.domain.tip.dto.response.TipDetailDTO;
 import com.example.swyp_team1_back.domain.tip.service.TipUserService;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
@@ -99,6 +100,24 @@ public class TipUserController {
             return ResponseUtil.createSuccessResponseWithoutPayload("팁 수정 성공");
         } catch (Exception e) {
             return ResponseUtil.createExceptionResponse("팁 수정 실패", ErrorCode.FAIL_UPDATE_TIP, e.getMessage());
+        }
+    }
+
+    @PatchMapping("/{tip_id}/actCnt")
+    @Operation(summary = "실천한 체크 횟수 update", description = "실천하여 체크된 체크박스의 개수로 요청해야 한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "실천 횟수 update 성공"),
+            @ApiResponse(responseCode = "3004", description = "실천 횟수 update 실패")
+    })
+    @Parameters({
+            @Parameter(name = "tipCntChecked", description = "실천한 체크 횟수를 입력해주세요.")
+    })
+    public ResponseEntity<? extends Response<? extends Object>> updateActCntChecked(@PathVariable Long tip_id, @RequestBody UpdateTipCntCheckedDTO dto) {  // SecurityConfig의 경로 인가 수정 필요
+        try {
+            tipUserService.updateActCntChecked(tip_id, dto.getTipCntChecked());
+            return ResponseUtil.createSuccessResponseWithoutPayload("팁 수정 성공");
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("팁 수정 실패", ErrorCode.FAIL_UPDATE_TIP_ACT_CNT, e.getMessage());
         }
     }
 }

@@ -85,5 +85,7 @@ public class Tip extends BaseTimeEntity {
         this.setCategory(category);
     }
 
-
+    public void updateActCntChecked(int actCntChecked) {
+        this.actCntChecked = actCntChecked;
+    }
 }
