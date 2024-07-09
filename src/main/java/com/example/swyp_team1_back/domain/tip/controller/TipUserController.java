@@ -83,7 +83,7 @@ public class TipUserController {
     @Operation(summary = "팁 수정", description = "로그인 한 회원은 tip_id에 해당되는 팁을 수정할 수 있다. 팁 수정 시, 팁 상세 조회로 팁을 가져온 뒤 수정이 되어야 한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "팁 수정 성공"),
-            @ApiResponse(responseCode = "3001", description = "팁 수정 실패 - 팁을 찾을 수 없음")
+            @ApiResponse(responseCode = "3003", description = "팁 수정 실패 - 팁을 찾을 수 없음")
     })
     @Parameters({
             @Parameter(name = "tipLink", description = "링크를 삽입해주세요."),
