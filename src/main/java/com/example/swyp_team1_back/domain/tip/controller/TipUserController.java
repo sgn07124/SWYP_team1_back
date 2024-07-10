@@ -16,6 +16,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -41,9 +44,12 @@ public class TipUserController {
             @Parameter(name = "deadLine_start", description = "데드라인을 설정해주세요."),
             @Parameter(name = "deadLine_end", description = "데드라인을 설정해주세요.")
     })
-    public ResponseEntity<Response<Void>> createTip(@RequestBody CreateTipDTO dto) {  // SecurityConfig의 경로 인가 수정 필요
+    public ResponseEntity<Response<Void>> createTip(@RequestBody CreateTipDTO dto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
         try {
-            tipUserService.createUserTip(dto);
+            tipUserService.createUserTip(dto, username);
             return ResponseUtil.createSuccessResponseWithoutPayload("팁 등록 성공");
         } catch (Exception e) {
             return ResponseUtil.createExceptionResponse("팁 등록 실패", ErrorCode.FAIL_CREATE_USER_TIP, e.getMessage());
@@ -56,7 +62,7 @@ public class TipUserController {
             @ApiResponse(responseCode = "200", description = "팁 삭제 성공"),
             @ApiResponse(responseCode = "3002", description = "팁 삭제 실패 - 팁을 찾을 수 없음")
     })
-    public ResponseEntity<Response<Void>> deleteTip(@PathVariable Long tip_id) {  // SecurityConfig의 경로 인가 수정 필요
+    public ResponseEntity<Response<Void>> deleteTip(@PathVariable Long tip_id) {
         try {
             tipUserService.deleteTip(tip_id);
             return ResponseUtil.createSuccessResponseWithoutPayload("팁 삭제 성공");
@@ -71,7 +77,7 @@ public class TipUserController {
             @ApiResponse(responseCode = "200", description = "팁 조회 성공"),
             @ApiResponse(responseCode = "3002", description = "팁 조회 실패 - 팁을 찾을 수 없음")
     })
-    public ResponseEntity<? extends Response<? extends Object>> getTipDetail(@PathVariable Long tip_id) {  // SecurityConfig의 경로 인가 수정 필요
+    public ResponseEntity<? extends Response<? extends Object>> getTipDetail(@PathVariable Long tip_id) {
         try {
             TipDetailDTO tipDetailDTO = tipUserService.getTipDetail(tip_id);
             return ResponseUtil.createSuccessResponseWithPayload("팁 조회 성공", tipDetailDTO);
@@ -94,7 +100,7 @@ public class TipUserController {
             @Parameter(name = "deadLine_start", description = "데드라인을 설정해주세요."),
             @Parameter(name = "deadLine_end", description = "데드라인을 설정해주세요.")
     })
-    public ResponseEntity<? extends Response<? extends Object>> updateTip(@PathVariable Long tip_id, @RequestBody CreateTipDTO dto) {  // SecurityConfig의 경로 인가 수정 필요
+    public ResponseEntity<? extends Response<? extends Object>> updateTip(@PathVariable Long tip_id, @RequestBody CreateTipDTO dto) {
         try {
             tipUserService.updateTip(tip_id, dto);
             return ResponseUtil.createSuccessResponseWithoutPayload("팁 수정 성공");
@@ -112,7 +118,7 @@ public class TipUserController {
     @Parameters({
             @Parameter(name = "tipCntChecked", description = "실천한 체크 횟수를 입력해주세요.")
     })
-    public ResponseEntity<? extends Response<? extends Object>> updateActCntChecked(@PathVariable Long tip_id, @RequestBody UpdateTipCntCheckedDTO dto) {  // SecurityConfig의 경로 인가 수정 필요
+    public ResponseEntity<? extends Response<? extends Object>> updateActCntChecked(@PathVariable Long tip_id, @RequestBody UpdateTipCntCheckedDTO dto) {
         try {
             tipUserService.updateActCntChecked(tip_id, dto.getTipCntChecked());
             return ResponseUtil.createSuccessResponseWithoutPayload("팁 수정 성공");
