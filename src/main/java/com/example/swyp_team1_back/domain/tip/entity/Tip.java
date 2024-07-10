@@ -93,11 +93,11 @@ public class Tip extends BaseTimeEntity {
     }
 
     /**
-     * 현재 진행 중인 실천횟수가 남아 있지만 현재 날짜가 deadLine_end를 넘어간 경우
+     * 현재 날짜가 deadLine_end를 넘어간 경우
      */
     public void checkCompleteStatus() {
         LocalDate now = LocalDate.now();
-        if ((this.actCntChecked < this.actCnt) && now.isAfter(this.deadLine_end)) {
+        if (now.isAfter(this.deadLine_end)) {
             this.completeYN = true;
         } else {
             this.completeYN = false;
