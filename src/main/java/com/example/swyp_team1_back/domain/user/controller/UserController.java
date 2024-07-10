@@ -1,9 +1,12 @@
 package com.example.swyp_team1_back.domain.user.controller;
 
 import com.example.swyp_team1_back.domain.user.dto.CreateUserDTO;
+import com.example.swyp_team1_back.domain.user.dto.LoginRequestDto;
+import com.example.swyp_team1_back.domain.user.dto.TokenDto;
 import com.example.swyp_team1_back.domain.user.service.UserService;
 import com.example.swyp_team1_back.global.common.response.Response;
 import com.example.swyp_team1_back.global.common.response.ResponseUtil;
+import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -13,6 +16,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +33,8 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final TokenProvider tokenProvider;
 
 
     @PostMapping("/signup")
@@ -64,6 +72,20 @@ public class UserController {
         }
         userService.signUp(dto);
         return ResponseUtil.createSuccessResponseWithoutPayload("회원가입에 성공하였습니다.");
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "로그인", description = "회원은 이메일과 비밀번호로 로그인할 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그인 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDto loginRequestDto) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
+        );
+        TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
+        return ResponseEntity.ok(tokenDto);
     }
 
 }

@@ -3,8 +3,10 @@ package com.example.swyp_team1_back.domain.user.repository;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+import java.util.Optional;
 
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email); //이메일로 User 찾기
     boolean existsByEmail(String email);
     boolean existsByPhone(String phone);
 }

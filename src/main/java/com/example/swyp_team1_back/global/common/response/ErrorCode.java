@@ -15,7 +15,8 @@ public enum ErrorCode {
     AGREE_PICU_NOT_CHECKED(4006, "Agree PICU Not Checked"),
     ILLEGAL_ARGUMENT_ERROR(4007, "Illegal Argument Error"),
     ILLEGAL_STATE_ERROR(4008, "Illegal State Error"),
-
+    EMAIL_NOT_FOUND(4009, "Email Not Found"),
+    INVALID_PASSWORD(4010, "Invalid Password"),
     FAIL_CREATE_USER_TIP(3001, "Fail to create user tip"),
     FAIL_FIND_TIP(3002, "Fail to find tip"),
     FAIL_UPDATE_TIP(3003, "Fail to update tip");
