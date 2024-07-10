@@ -103,4 +103,8 @@ public class Tip extends BaseTimeEntity {
             this.completeYN = false;
         }
     }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

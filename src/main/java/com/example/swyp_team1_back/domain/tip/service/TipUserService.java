@@ -6,6 +6,8 @@ import com.example.swyp_team1_back.domain.tip.entity.Category;
 import com.example.swyp_team1_back.domain.tip.entity.Tip;
 import com.example.swyp_team1_back.domain.tip.repository.CategoryRepository;
 import com.example.swyp_team1_back.domain.tip.repository.TipRepository;
+import com.example.swyp_team1_back.domain.user.entity.User;
+import com.example.swyp_team1_back.domain.user.repository.UserRepository;
 import com.example.swyp_team1_back.global.common.response.CustomFieldException;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.common.response.ResourceNotFoundException;
@@ -28,14 +30,19 @@ public class TipUserService {
 
     private final TipRepository tipRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public Tip createUserTip(CreateTipDTO createTipDTO) {
+    public Tip createUserTip(CreateTipDTO createTipDTO, String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Category category = categoryRepository.findById(createTipDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category ID"));
         Tip tip = Tip.createUserTip(createTipDTO);
         tip.setCategory(category);
+        tip.setUser(user);
         return tipRepository.save(tip);
     }
 

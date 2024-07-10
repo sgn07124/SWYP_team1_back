@@ -21,7 +21,7 @@ import java.util.List;
 @Entity
 @Table(name = "User")
 @NoArgsConstructor
-public class User extends BaseTimeEntity {
+public class User extends BaseTimeEntity  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -84,7 +84,7 @@ public class User extends BaseTimeEntity {
         user.agree_PICU = dto.getAgreePICU();
         user.agree_marketing = dto.getAgreeMarketing();
 
-        user.role = Role.USER;
+        user.role = Role.ROLE_USER;
         user.nickname = dto.getEmail();
         user.imgUrl = defaultProfileImageUrl;
         user.fromSocial = false;
