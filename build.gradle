@@ -43,6 +43,15 @@ dependencies {
 
 	// aws s3
 	implementation group: 'io.awspring.cloud', name: 'spring-cloud-starter-aws', version: '2.4.0'
+
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.mockito:mockito-core'
+	testImplementation 'io.jsonwebtoken:jjwt-api:0.11.2'
 }
 
 tasks.named('test') {

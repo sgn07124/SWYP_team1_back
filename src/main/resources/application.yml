@@ -45,3 +45,6 @@ cloud:
       static: ap-northeast-2
     stack:
       auto: false
+jwt:
+  secret:
+    key: UlYth+E49WB6dlTGdGG2Ll0c8PBcFjgbqt+IOP/Z6F7MlpWB04rsL9iIc9GGlnWVFV1PmWqmp9tDkox4kJHz1Q==
