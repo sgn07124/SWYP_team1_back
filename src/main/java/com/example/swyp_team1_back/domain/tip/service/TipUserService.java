@@ -78,7 +78,7 @@ public class TipUserService {
     @Transactional
     @Scheduled(cron = "0 0 0 * * ?")  // 매일 자정에 실행
     public void updateCheckCompleteStatus() {
-        List<Tip> tips = tipRepository.findAll();
+        List<Tip> tips = tipRepository.findAllByCompleteYNFalse();
         for (Tip tip : tips) {
             tip.checkCompleteStatus();
             tipRepository.save(tip);
