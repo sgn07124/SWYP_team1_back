@@ -80,6 +80,10 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "로그인 성공"),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
+    @Parameters({
+            @Parameter(name = "email", description = "이메일 형식이어야 합니다.", example = "test1@naver.com"),
+            @Parameter(name = "password", description = "비밀번호는 최소 8자리 이상이어야 합니다.", example = "abcd1234"),
+    })
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDto loginRequestDto) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
