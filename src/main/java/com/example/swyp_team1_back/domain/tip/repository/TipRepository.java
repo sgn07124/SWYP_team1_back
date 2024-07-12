@@ -13,12 +13,9 @@ public interface TipRepository extends JpaRepository<Tip, Long> {
     Optional<Tip> findById(Long id);
     List<Tip> findAllByCompleteYNFalse();
 
-    @Query("select t from Tip t where t.id > :cursor and t.completeYN = false order by t.id ASC")
-    List<Tip> findByIdGreaterThanAndCompleteYNIsFalse(Long cursor, Pageable pageable);
+    @Query("select t from Tip t where t.id > :cursor and t.completeYN = false and t.user.id = :userId order by t.id ASC")
+    List<Tip> findByIdGreaterThanAndCompleteYNIsFalseAAndUserId(Long cursor, Long userId, Pageable pageable);
 
-    //@Query("select t from Tip t where t.id > :cursor and t.completeYN = true order by t.id ASC")
-    //List<Tip> findByIdGreaterThanAndCompleteYNIsTrue(Long cursor, Pageable pageable);
-
-    @Query("select t from Tip t where t.id > :cursor and t.completeYN = true order by t.completeRegDate desc ")
-    List<Tip> findByIdGreaterThanAndCompleteYNIsTrueOrderByCompleteRegDateDesc(Long cursor, Pageable pageable);
+    @Query("SELECT t FROM Tip t WHERE t.id > :cursor AND t.completeYN = true AND t.user.id = :userId ORDER BY t.completeRegDate DESC")
+    List<Tip> findByIdGreaterThanAndCompleteYNIsTrueAndUserIdOrderByCompleteRegDateDesc(Long cursor, Long userId, Pageable pageable);
 }
