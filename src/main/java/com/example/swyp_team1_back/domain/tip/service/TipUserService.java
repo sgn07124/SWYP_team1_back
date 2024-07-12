@@ -1,6 +1,7 @@
 package com.example.swyp_team1_back.domain.tip.service;
 
 import com.example.swyp_team1_back.domain.tip.dto.request.CreateTipDTO;
+import com.example.swyp_team1_back.domain.tip.dto.response.TipCompleteYnListDTO;
 import com.example.swyp_team1_back.domain.tip.dto.response.TipDetailDTO;
 import com.example.swyp_team1_back.domain.tip.entity.Category;
 import com.example.swyp_team1_back.domain.tip.entity.Tip;
@@ -14,6 +15,7 @@ import com.example.swyp_team1_back.global.common.response.ResourceNotFoundExcept
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +93,24 @@ public class TipUserService {
             tip.checkCompleteStatus();
             tipRepository.save(tip);
         }
+    }
+
+    @Transactional
+    public List<TipCompleteYnListDTO> getDoingTips(Long cursor, int pageSize) {
+        if (cursor == null) {
+            cursor = 0L;  // 처음 조회할 때는 0부터 시작
+        }
+        List<Tip> tips = tipRepository.findByIdGreaterThanAndCompleteYNIsFalse(cursor, PageRequest.of(0, pageSize));
+        return tips.stream().map(TipCompleteYnListDTO::new).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<TipCompleteYnListDTO> getFinishTips(Long cursor, int pageSize) {
+        if (cursor == null) {
+            cursor = 0L;  // 처음 조회할 때는 0부터 시작
+        }
+        List<Tip> tips = tipRepository.findByIdGreaterThanAndCompleteYNIsTrueOrderByCompleteRegDateDesc(cursor, PageRequest.of(0, pageSize));
+        return tips.stream().map(TipCompleteYnListDTO::new).collect(Collectors.toList());
     }
 
     private TipDetailDTO convertToDetailDto(Tip tip) {

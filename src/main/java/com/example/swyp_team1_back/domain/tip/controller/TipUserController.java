@@ -2,8 +2,11 @@ package com.example.swyp_team1_back.domain.tip.controller;
 
 import com.example.swyp_team1_back.domain.tip.dto.request.CreateTipDTO;
 import com.example.swyp_team1_back.domain.tip.dto.request.UpdateTipCntCheckedDTO;
+import com.example.swyp_team1_back.domain.tip.dto.response.TipCompleteYnListDTO;
 import com.example.swyp_team1_back.domain.tip.dto.response.TipDetailDTO;
+import com.example.swyp_team1_back.domain.tip.entity.Tip;
 import com.example.swyp_team1_back.domain.tip.service.TipUserService;
+import com.example.swyp_team1_back.global.common.response.CursorPaginationResponse;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.common.response.Response;
 import com.example.swyp_team1_back.global.common.response.ResponseUtil;
@@ -20,6 +23,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @ResponseBody
@@ -124,6 +129,44 @@ public class TipUserController {
             return ResponseUtil.createSuccessResponseWithoutPayload("팁 수정 성공");
         } catch (Exception e) {
             return ResponseUtil.createExceptionResponse("팁 수정 실패", ErrorCode.FAIL_UPDATE_TIP_ACT_CNT, e.getMessage());
+        }
+    }
+
+    @GetMapping("/doing")
+    @Operation(summary = "마이페이지의 팁 실천 중 리스트 조회", description = "실천 중인 팁을 최근 등록한 실천 리스트 순으로 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "실천 중인 팁 조회 성공"),
+            @ApiResponse(responseCode = "3002", description = "팁 조회 실패 - 팁을 찾을 수 없음")
+    })
+    public ResponseEntity<? extends Response<? extends Object>> getDoingTipList(
+            @Parameter(description = "다음 페이지 조회 시 필요한 커서 값으로 payload의 nextCursor값을 위치시킨다. 처음 조회 시(doing 탭의 가장 최근 팁들 4개 조회)에는 생략(\"/api/tip/doing\") ", required = false) @RequestParam(value = "cursor", required = false) Long cursor,
+            @Parameter(description = "페이지 크기(기본값: 4)로 생략", required = false) @RequestParam(value = "pageSize", defaultValue = "4") int pageSize) {
+        try {
+            List<TipCompleteYnListDTO> tips = tipUserService.getDoingTips(cursor, pageSize);
+            Long nextCursor = tips.isEmpty() ? null : tips.get(tips.size() - 1).getId();
+            CursorPaginationResponse<TipCompleteYnListDTO> response = new CursorPaginationResponse<>(nextCursor, pageSize, tips);
+            return ResponseUtil.createSuccessResponseWithPayload("팁 조회 성공", response);
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("팁 조회 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
+        }
+    }
+
+    @GetMapping("/finish")
+    @Operation(summary = "마이페이지의 팁 실천 완료 리스트 조회", description = "실천 완료된 팁을 최근 완료된 팁 리스트 순으로 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "완료된 팁 조회 성공"),
+            @ApiResponse(responseCode = "3002", description = "팁 조회 실패 - 팁을 찾을 수 없음")
+    })
+    public ResponseEntity<? extends Response<? extends Object>> getFinishTipList(
+            @Parameter(description = "다음 페이지 조회 시 필요한 커서 값으로 payload의 nextCursor값을 위치시킨다. 처음 조회 시(doing 탭의 가장 최근 팁들 4개 조회)에는 생략(\"/api/tip/doing\") ", required = false) @RequestParam(value = "cursor", required = false) Long cursor,
+            @Parameter(description = "페이지 크기(기본값: 4)로 생략", required = false) @RequestParam(value = "pageSize", defaultValue = "4") int pageSize) {
+        try {
+            List<TipCompleteYnListDTO> tips = tipUserService.getFinishTips(cursor, pageSize);
+            Long nextCursor = tips.isEmpty() ? null : tips.get(tips.size() - 1).getId();
+            CursorPaginationResponse<TipCompleteYnListDTO> response = new CursorPaginationResponse<>(nextCursor, pageSize, tips);
+            return ResponseUtil.createSuccessResponseWithPayload("팁 조회 성공", response);
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("팁 조회 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
         }
     }
 }
