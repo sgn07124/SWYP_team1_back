@@ -109,7 +109,7 @@ public class TipUserService {
         if (cursor == null) {
             cursor = 0L;  // 처음 조회할 때는 0부터 시작
         }
-        List<Tip> tips = tipRepository.findByIdGreaterThanAndCompleteYNIsTrue(cursor, PageRequest.of(0, pageSize));
+        List<Tip> tips = tipRepository.findByIdGreaterThanAndCompleteYNIsTrueOrderByCompleteRegDateDesc(cursor, PageRequest.of(0, pageSize));
         return tips.stream().map(TipCompleteYnListDTO::new).collect(Collectors.toList());
     }
 
