@@ -37,11 +37,15 @@ public class BoardService {
     }
 
     @Transactional
-    public List<BoardTipDTO> searchTipsByKeyword(Long cursor, int pageSize, String keyword) {
+    public List<BoardTipDTO> getBoardCategory(Long cursor, int pageSize, Long categoryId) {
         Pageable pageable = PageRequest.of(0, pageSize);
-        List<Tip> tips = tipRepository.searchByKeywordAndIsMineTrue(cursor, pageable, keyword);
-        System.out.println("Tips found: " + tips.size());
-        tips.forEach(tip -> System.out.println("Tip title: " + tip.getTipTitle() + ", regDate: " + tip.getRegDate()));
+
+        // 커서가 null인 경우 처음 조회
+        if (cursor == null) {
+            cursor = Long.MAX_VALUE;  // 처음 조회할 때는 가장 큰 값으로 시작
+        }
+
+        List<Tip> tips = tipRepository.findByCategoryIdAndIsMineTrueAndIdLessThanOrderByRegDateDesc(cursor, pageable, categoryId);
         return tips.stream().map(BoardTipDTO::new).collect(Collectors.toList());
     }
 }
