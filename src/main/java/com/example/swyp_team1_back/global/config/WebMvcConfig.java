@@ -12,7 +12,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://swyg-front.vercel.app/" , "http://15.164.202.203:8080/","http://localhost:3000")
+                .allowedOrigins("*")
                 .allowedMethods("OPTIONS","GET","POST","PUT","DELETE","PATCH");
     }
 }
