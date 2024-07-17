@@ -43,6 +43,8 @@ public class SecurityConfig {
         // JWT 필터 추가
         http.addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
 
+        http.cors();
+
 
         return http.build();
     }
