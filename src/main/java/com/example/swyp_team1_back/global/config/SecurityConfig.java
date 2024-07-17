@@ -62,6 +62,7 @@ public class SecurityConfig {
         // JWT 필터 추가
         http.addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
 
+        // cors 적용
         http.cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource())).csrf(AbstractHttpConfigurer::disable);
 
 
