@@ -68,7 +68,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://15.164.202.203", "http://15.164.202.203:8080", "http://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList("http://15.164.202.203", "http://15.164.202.203:8080", "http://localhost:3000, https://swyg-front.vercel.app/"));
         configuration.setAllowedMethods(Arrays.asList("OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true); // 자격 증명이 필요한 경우
