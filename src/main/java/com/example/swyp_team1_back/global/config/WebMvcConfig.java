@@ -12,7 +12,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://15.164.202.203", "http://15.164.202.203:8080", "http://localhost:3000")
+                .allowedOrigins("http://15.164.202.203", "http://15.164.202.203:8080", "http://localhost:3000", "https://swyg-front.vercel.app/")
                 .allowedMethods("OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH")
                 .allowedHeaders("*") // 필요한 경우 특정 헤더를 지정
                 .allowCredentials(true); // 자격 증명이 필요한 경우
