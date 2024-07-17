@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 @ResponseBody
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "http://15.164.202.203:8080/")
 @Tag(name = "회원가입 및 로그인 컨트롤러", description = "로그인, 회원가입 등 회원 정보 관련 API")
 public class UserController {
 
