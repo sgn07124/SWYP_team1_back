@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(CorsRegistry registry) {  // cors 에러 해결
         registry.addMapping("/**")
                 .allowedOrigins("https://swyg-front.vercel.app" , "http://15.164.202.203:8080", "http://15.164.202.203", "http://localhost:3000")
                 .allowedMethods("OPTIONS","GET","POST","PUT","DELETE","PATCH");
