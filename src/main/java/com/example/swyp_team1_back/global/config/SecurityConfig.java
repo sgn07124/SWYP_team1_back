@@ -26,18 +26,6 @@ public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
 
-    // CORS 설정
-    CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
-            CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedHeaders(Collections.singletonList("*"));
-            config.setAllowedMethods(Collections.singletonList("*"));
-            config.setAllowedOriginPatterns(Collections.singletonList("http://15.164.202.203:8080")); // ⭐️ 허용할 origin
-            config.setAllowCredentials(true);
-            return config;
-        };
-    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // csrf disable
@@ -61,10 +49,6 @@ public class SecurityConfig {
 
         // JWT 필터 추가
         http.addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
-
-        // cors 적용
-        http.cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource())).csrf(AbstractHttpConfigurer::disable);
-
 
         return http.build();
     }
