@@ -1,11 +1,12 @@
 package com.example.swyp_team1_back.domain.user.controller;
 
-import com.example.swyp_team1_back.domain.user.dto.CreateUserDTO;
-import com.example.swyp_team1_back.domain.user.dto.LoginRequestDto;
-import com.example.swyp_team1_back.domain.user.dto.TokenDto;
+import com.example.swyp_team1_back.domain.user.dto.*;
+import com.example.swyp_team1_back.domain.user.entity.User;
+import com.example.swyp_team1_back.domain.user.repository.UserRepository;
 import com.example.swyp_team1_back.domain.user.service.UserService;
 import com.example.swyp_team1_back.global.common.response.Response;
 import com.example.swyp_team1_back.global.common.response.ResponseUtil;
+import com.example.swyp_team1_back.global.jwt.JwtProperties;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,12 +14,16 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +40,7 @@ public class UserController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
+    private final UserRepository userRepository;
 
 
     @PostMapping("/signup")
@@ -92,4 +98,29 @@ public class UserController {
         return ResponseEntity.ok(tokenDto);
     }
 
+
+    // 카카오 로그인 엔드포인트 추가
+    @GetMapping("/login/kakao")
+    @Operation(summary = "카카오 로그인", description = "프론트에서 받은 인가 코드로 카카오 액세스 토큰을 발급받는다.")
+    public ResponseEntity getLogin(@RequestParam("code") String code,@RequestParam("agreePicu") boolean agreePicu,
+                         @RequestParam("agreeTos") boolean agreeTos,
+                         @RequestParam("agreeMarketing") boolean agreeMarketing) { //(4)
+
+        // 인가 코드로 카카오 액세스 토큰을 발급받는다.
+        OauthToken  oauthToken = userService.getAccessToken(code);
+
+        //카카오 회원정보 디비 저장후 jwt생성
+        String jwtToken = userService.saveUserAndGetToken(oauthToken.getAccess_token(), agreePicu, agreeTos, agreeMarketing);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
+
+        return ResponseEntity.ok().headers(headers).body("카카오 로그인 success");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        KakaoUserInfoDto kakaoUserInfoDto = userService.getUser();
+        return ResponseEntity.ok(kakaoUserInfoDto);
+    }
 }

@@ -1,5 +1,7 @@
 package com.example.swyp_team1_back.global.config;
 
+import com.example.swyp_team1_back.global.jwt.JwtAccessDeniedHandler;
+import com.example.swyp_team1_back.global.jwt.JwtAuthenticationEntryPoint;
 import com.example.swyp_team1_back.global.jwt.JwtFilter;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // csrf disable
@@ -36,9 +40,14 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/", "/swagger-ui/**","/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup","/api/user/login", "/api/tip/**").permitAll()
+                        .requestMatchers("/", "/swagger-ui/**","/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup","/api/user/login", "/api/tip/**", "/api/user/login/kakao").permitAll()
+                        .requestMatchers("/api/user/me").authenticated()
                         .anyRequest().authenticated());
 
+        http
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                                .accessDeniedHandler(jwtAccessDeniedHandler));
         // JWT 필터 추가
         http.addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
 
