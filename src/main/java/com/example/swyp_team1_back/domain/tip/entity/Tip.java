@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +47,9 @@ public class Tip extends BaseTimeEntity {
 
     @Column(name = "is_Mine", nullable = false)
     private Boolean isMine;  // 내가 작성한 꿀팁인지 아닌지. true:내꺼. false:남에꺼
+
+    @Column(name = "complete_reg_date")
+    private LocalDateTime completeRegDate;  // completeYN이 true로 변환된 시간
 
     @OneToMany(mappedBy = "tip")
     private List<BookmarkTip> bookmarkTips = new ArrayList<>();
@@ -89,6 +93,7 @@ public class Tip extends BaseTimeEntity {
         this.actCntChecked = actCntChecked;
         if (this.actCntChecked == this.actCnt) {  // 데드라인이 남아 있지만, 현재 진행 중인 실천 횟수와 총 실천 횟수가 같아진 경우.
             this.completeYN = true;
+            this.completeRegDate = LocalDateTime.now();
         }
     }
 
@@ -99,8 +104,13 @@ public class Tip extends BaseTimeEntity {
         LocalDate now = LocalDate.now();
         if (now.isAfter(this.deadLine_end)) {
             this.completeYN = true;
+            this.completeRegDate = LocalDateTime.now();
         } else {
             this.completeYN = false;
         }
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

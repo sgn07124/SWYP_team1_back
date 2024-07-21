@@ -53,7 +53,8 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    private static final String DEFAULT_PROFILE_IMAGE_URL = "https://swyp-team1-s3-bucket.s3.ap-northeast-2.amazonaws.com/default_profile.png";
+
+    private static final String DEFAULT_PROFILE_IMAGE_URL = "https://swyp-team1-s3-bucket.s3.ap-northeast-2.amazonaws.com/default_image.png";
 
 
 
@@ -171,26 +172,25 @@ public class UserService {
         return null;
     }
 
+    // 회원가입 시 사용자 정보를 저장하고 JWT 토큰을 생성하는 메서드
     public String saveUserAndGetToken(String token, boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
-
         KakaoProfile profile = findProfile(token);
 
-        // User객체에 담는다
         Optional<User> optionalUser = userRepository.findByEmail(profile.getKakao_account().getEmail());
 
         User user;
-        //디비에 담기전에 이미 존재하는 사용자인지 점검
-        if(optionalUser.isEmpty()) {
+        if (optionalUser.isEmpty()) {
             user = User.builder()
                     .phone("000-0000-0000")
                     .email(profile.getKakao_account().getEmail())
                     .nickname(profile.getKakao_account().getProfile().getNickname())
                     .imgUrl(DEFAULT_PROFILE_IMAGE_URL)
-                    .role(Role.USER)
+                    .role(Role.ROLE_USER)
                     .agree_PICU(agreePicu)
                     .agree_TOS(agreeTos)
                     .agree_marketing(agreeMarketing)
-                    .from_social(true).build();
+                    .from_social(true)
+                    .build();
 
             userRepository.save(user);
         } else {
@@ -205,6 +205,8 @@ public class UserService {
         // JWT 생성
         return tokenProvider.generateTokenDto(authentication).getAccessToken();
     }
+
+
 
     //access token으로 카카오 서버에서 사용자 정보가져옴
     public KakaoProfile findProfile(String token) {

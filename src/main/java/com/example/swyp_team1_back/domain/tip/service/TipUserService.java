@@ -1,18 +1,23 @@
 package com.example.swyp_team1_back.domain.tip.service;
 
 import com.example.swyp_team1_back.domain.tip.dto.request.CreateTipDTO;
+import com.example.swyp_team1_back.domain.tip.dto.response.TipCompleteYnListDTO;
 import com.example.swyp_team1_back.domain.tip.dto.response.TipDetailDTO;
 import com.example.swyp_team1_back.domain.tip.entity.Category;
 import com.example.swyp_team1_back.domain.tip.entity.Tip;
 import com.example.swyp_team1_back.domain.tip.repository.CategoryRepository;
 import com.example.swyp_team1_back.domain.tip.repository.TipRepository;
+import com.example.swyp_team1_back.domain.user.entity.User;
+import com.example.swyp_team1_back.domain.user.repository.UserRepository;
 import com.example.swyp_team1_back.global.common.response.CustomFieldException;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.common.response.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +25,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,14 +34,19 @@ public class TipUserService {
 
     private final TipRepository tipRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public Tip createUserTip(CreateTipDTO createTipDTO) {
+    public Tip createUserTip(CreateTipDTO createTipDTO, String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Category category = categoryRepository.findById(createTipDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category ID"));
         Tip tip = Tip.createUserTip(createTipDTO);
         tip.setCategory(category);
+        tip.setUser(user);
         return tipRepository.save(tip);
     }
 
@@ -85,6 +96,26 @@ public class TipUserService {
         }
     }
 
+    @Transactional
+    public List<TipCompleteYnListDTO> getDoingTips(Long cursor, int pageSize) {
+        if (cursor == null) {
+            cursor = 0L;  // 처음 조회할 때는 0부터 시작
+        }
+        Long userId = getCurrentUserId();
+        List<Tip> tips = tipRepository.findByIdGreaterThanAndCompleteYNIsFalseAAndUserId(cursor, userId, PageRequest.of(0, pageSize));
+        return tips.stream().map(TipCompleteYnListDTO::new).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<TipCompleteYnListDTO> getFinishTips(Long cursor, int pageSize) {
+        if (cursor == null) {
+            cursor = 0L;  // 처음 조회할 때는 0부터 시작
+        }
+        Long userId = getCurrentUserId();
+        List<Tip> tips = tipRepository.findByIdGreaterThanAndCompleteYNIsTrueAndUserIdOrderByCompleteRegDateDesc(cursor, userId, PageRequest.of(0, pageSize));
+        return tips.stream().map(TipCompleteYnListDTO::new).collect(Collectors.toList());
+    }
+
     private TipDetailDTO convertToDetailDto(Tip tip) {
         TipDetailDTO dto = new TipDetailDTO();
         dto.setId(tip.getId());
@@ -104,5 +135,14 @@ public class TipUserService {
         dto.setD_day((int) ChronoUnit.DAYS.between(LocalDate.now(), tip.getDeadLine_end()));
         dto.setActCnt_checked(tip.getActCntChecked());
         return dto;
+    }
+
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName(); // UserDetails의 getUsername()이 호출되어 email이 반환됩니다.
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
+        return user.getId();
     }
 }

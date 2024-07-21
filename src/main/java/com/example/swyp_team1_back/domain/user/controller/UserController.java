@@ -14,10 +14,13 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +29,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +45,7 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
 
     @PostMapping("/signup")
@@ -99,23 +104,38 @@ public class UserController {
     }
 
 
+
     // 카카오 로그인 엔드포인트 추가
     @GetMapping("/login/kakao")
     @Operation(summary = "카카오 로그인", description = "프론트에서 받은 인가 코드로 카카오 액세스 토큰을 발급받는다.")
-    public ResponseEntity getLogin(@RequestParam("code") String code,@RequestParam("agreePicu") boolean agreePicu,
-                         @RequestParam("agreeTos") boolean agreeTos,
-                         @RequestParam("agreeMarketing") boolean agreeMarketing) { //(4)
+    public ResponseEntity getLogin(@RequestParam("code") String code,
+                                   boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
 
-        // 인가 코드로 카카오 액세스 토큰을 발급받는다.
-        OauthToken  oauthToken = userService.getAccessToken(code);
+        try {
+            // 인가 코드로 카카오 액세스 토큰을 발급받는다.
+            OauthToken oauthToken = userService.getAccessToken(code);
+            logger.info("OauthToken: " + oauthToken);
 
-        //카카오 회원정보 디비 저장후 jwt생성
-        String jwtToken = userService.saveUserAndGetToken(oauthToken.getAccess_token(), agreePicu, agreeTos, agreeMarketing);
+            // 카카오 회원정보 디비 저장후 jwt생성
+            String jwtToken = userService.saveUserAndGetToken(oauthToken.getAccess_token(), agreePicu, agreeTos, agreeMarketing);
+            logger.info("JWT Token: " + jwtToken);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
 
-        return ResponseEntity.ok().headers(headers).body("카카오 로그인 success");
+            // 로그 추가: 응답 헤더 확인
+            System.out.println("Response Headers: " + headers);
+
+            return ResponseEntity.ok().headers(headers).body("kakao login success");
+        } catch (HttpClientErrorException e) {
+            // 로그 추가
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid authorization code");
+        } catch (Exception e) {
+            // 기타 예외 처리
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+        }
     }
 
     @GetMapping("/me")

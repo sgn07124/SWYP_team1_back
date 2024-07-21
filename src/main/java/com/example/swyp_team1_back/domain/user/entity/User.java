@@ -21,7 +21,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User extends BaseTimeEntity {
+
+public class User extends BaseTimeEntity  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -86,7 +87,7 @@ public class User extends BaseTimeEntity {
         user.agree_PICU = dto.getAgreePICU();
         user.agree_marketing = dto.getAgreeMarketing();
 
-        user.role = Role.USER;
+        user.role = Role.ROLE_USER;
         user.nickname = dto.getEmail();
         user.imgUrl = defaultProfileImageUrl;
        // user.loginId = dto.getLoginId();  // 소셜 로그인 ID 설정
