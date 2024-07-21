@@ -1,7 +1,7 @@
 package com.example.swyp_team1_back.global.jwt;
 
-import com.example.swyp_team1_back.domain.user.dto.TokenDto;
 
+import com.example.swyp_team1_back.domain.user.dto.TokenDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -10,10 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Arrays;
@@ -38,6 +39,7 @@ public class TokenProvider {
         if (secretKey == null) {
             throw new IllegalArgumentException("JWT secret key is not configured. Please set 'jwt.secret.key' in application.properties or application.yml");
         }
+        log.debug("JWT Secret Key: {}", secretKey);
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -98,6 +100,8 @@ public class TokenProvider {
 
         // UserDetails 객체를 만들어서 Authentication 리턴
         UserDetails principal = new User(claims.getSubject(), "", authorities);
+        // 명시적으로 org.springframework.security.core.userdetails.User를 사용
+
 
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
@@ -106,15 +110,16 @@ public class TokenProvider {
     public boolean validateToken(String token) { //토큰 검증
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            log.info("JWT token is valid.");
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
+            log.info("Invalid JWT signature");
         } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
+            log.info("Expired JWT token.");
         } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 토큰입니다.");
+            log.info("Unsupported JWT token.");
         } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
+            log.info("JWT token is invalid.");
         }
         return false;
     }
@@ -125,5 +130,17 @@ public class TokenProvider {
         } catch (ExpiredJwtException e) {
             return e.getClaims();
         }
+    }
+    public Claims getClaims(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        // Log all claims
+        log.debug("All claims from JWT: {}", claims);
+
+        return claims;
     }
 }

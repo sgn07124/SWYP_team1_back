@@ -7,9 +7,7 @@ import com.example.swyp_team1_back.global.common.entity.BaseTimeEntity;
 import com.example.swyp_team1_back.global.common.response.CustomFieldException;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
@@ -21,6 +19,9 @@ import java.util.List;
 @Entity
 @Table(name = "User")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+
 public class User extends BaseTimeEntity  {
 
     @Id
@@ -55,7 +56,9 @@ public class User extends BaseTimeEntity  {
     @Column(name = "agree_MT")
     private Boolean agree_marketing;  // 마케팅 정보 이메일 수신 동의(선택)
 
-    private Boolean fromSocial;  // // 소셜 회원가입 여부 true:소셜, false:일반
+    @Column(name = "from_social")
+    private boolean from_social;
+
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<Tip> tips = new ArrayList<>();  // 회원 탈퇴 시, 작성했던 팁들도 삭제
@@ -87,7 +90,7 @@ public class User extends BaseTimeEntity  {
         user.role = Role.ROLE_USER;
         user.nickname = dto.getEmail();
         user.imgUrl = defaultProfileImageUrl;
-        user.fromSocial = false;
+       // user.loginId = dto.getLoginId();  // 소셜 로그인 ID 설정
         return user;
     }
 
