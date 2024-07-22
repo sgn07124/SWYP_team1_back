@@ -56,7 +56,7 @@ security:
         kakao:
           client-id: 5d3ed4c53f6081a9a1503e178dfdfaeb
           client-secret: SazkBcme6hi3TkyhRBBps3Hl0G7rMfcP
-          redirect-uri: "http://localhost:8080/api/user/login/kakao"
+          redirect-uri: "http://15.164.202.203:8080/api/user/login/kakao"
           authorization-grant-type: authorization_code
           scope: profile_nickname,  account_email
           client-authentication-method: POST
