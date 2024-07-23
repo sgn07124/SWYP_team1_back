@@ -30,7 +30,7 @@ public class TokenProvider {
 
     //토큰 타입 지정하는 상수
     private static final String BEARER_TYPE = "Bearer";
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;            // 유효기간 30분
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 12;            // 유효기간 12시간
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;  // 유효기간 7일
 
     private final Key key;
