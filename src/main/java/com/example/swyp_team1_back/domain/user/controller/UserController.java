@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -108,8 +109,7 @@ public class UserController {
     // 카카오 로그인 엔드포인트 추가
     @GetMapping("/login/kakao")
     @Operation(summary = "카카오 로그인", description = "프론트에서 받은 인가 코드로 카카오 액세스 토큰을 발급받는다.")
-    public ResponseEntity getLogin(@RequestParam("code") String code,
-                                   boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
+    public ResponseEntity getLogin(@RequestParam("code") String code,boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
 
         try {
             // 인가 코드로 카카오 액세스 토큰을 발급받는다.
@@ -129,10 +129,12 @@ public class UserController {
             return ResponseEntity.ok().headers(headers).body("kakao login success");
         } catch (HttpClientErrorException e) {
             // 로그 추가
+            logger.error("HttpClientErrorException: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid authorization code");
         } catch (Exception e) {
             // 기타 예외 처리
+            logger.error("Exception: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
@@ -143,4 +145,29 @@ public class UserController {
         KakaoUserInfoDto kakaoUserInfoDto = userService.getUser();
         return ResponseEntity.ok(kakaoUserInfoDto);
     }
+
+    @PostMapping("/details/pw")
+    @Operation(summary = "비밀번호 재설정", description = "회원은 비밀번호를 재설정하기위해 이메일, 이름, 전화번호로 본인인증을 해야한다.")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetRequestDto requestDto) {
+        boolean isRegistered = userService.verifyUser(requestDto.getEmail(), requestDto.getName(), requestDto.getPhone());
+        if (!isRegistered) {
+            return ResponseEntity.badRequest().body("Invalid User ");
+        }
+
+        String resetPasswordUrl = "https://15.164.202.203:8080/reset-password?email=" + requestDto.getEmail();
+        return ResponseEntity.ok(resetPasswordUrl);
+    }
+
+    @PostMapping("/details/repw")
+    @Operation(summary = "비밀번호 재설정", description = "인증된 사용자는 이 엔드포인트를 통해 비밀번호를 재설정할 수 있다.")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordChangeRequestDto requestDto) {
+        boolean isPasswordChanged = userService.changePassword(requestDto.getEmail(), requestDto.getNewPassword(), requestDto.getRePassword());
+        if (!isPasswordChanged) {
+            return ResponseEntity.badRequest().body("비밀번호 재설정에 실패했습니다.");
+        }
+
+        return ResponseEntity.ok("비밀번호가 성공적으로 재설정되었습니다.");
+    }
+
+
 }

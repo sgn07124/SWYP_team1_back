@@ -10,12 +10,8 @@ import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,15 +28,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import static com.example.swyp_team1_back.global.jwt.JwtProperties.EXPIRATION_TIME;
-import static com.nimbusds.oauth2.sdk.token.TokenTypeURI.JWT;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +43,7 @@ public class UserService {
 
 
     private static final String DEFAULT_PROFILE_IMAGE_URL = "https://swyp-team1-s3-bucket.s3.ap-northeast-2.amazonaws.com/default_image.png";
-
+    private final Set<String> usedAuthorizationCodes = Collections.synchronizedSet(new HashSet<>());
 
 
     @Transactional
@@ -140,6 +128,9 @@ public class UserService {
     }
 
     public OauthToken getAccessToken(String code) {
+        if (usedAuthorizationCodes.contains(code)) {
+            throw new IllegalArgumentException("Authorization code has already been used.");
+        }
         String KAKAO_TOKEN_REQUEST_URI = "https://kauth.kakao.com/oauth/token";
 
         RestTemplate restTemplate = new RestTemplate(); //통신에 유용
@@ -149,7 +140,7 @@ public class UserService {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("client_id", "5d3ed4c53f6081a9a1503e178dfdfaeb"); // 카카오 REST API 키
-        params.add("redirect_uri", "http://localhost:8080/api/user/login/kakao");
+        params.add("redirect_uri", "http://15.164.202.203:8080/api/user/login/kakao");
         params.add("client_secret", "SazkBcme6hi3TkyhRBBps3Hl0G7rMfcP");
         params.add("code", code);
 
@@ -164,6 +155,7 @@ public class UserService {
             OauthToken oauthToken = null;
             try {
                 oauthToken = objectMapper.readValue(response.getBody(), OauthToken.class);
+                usedAuthorizationCodes.add(code);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to parse access token response", e);
             }
@@ -259,6 +251,26 @@ public class UserService {
             throw new RuntimeException("Principal is not an instance of UserDetails");
         }
     }
+
+    public boolean verifyUser(String email, String name, String phone) {
+        return userRepository.existsByEmailAndNameAndPhone(email, name, phone);
+    }
+
+    public boolean changePassword(String email, String newPassword, String confirmPassword) {
+        if (!newPassword.equals(confirmPassword)) {
+            return false;
+        }
+
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setPassword(newPassword); // 비밀번호를 암호화해야 합니다.
+            userRepository.save(user);
+            return true;
+        }
+        return false;
+    }
+
 
 
 }

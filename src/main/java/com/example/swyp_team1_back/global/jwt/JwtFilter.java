@@ -52,7 +52,7 @@ public class JwtFilter extends OncePerRequestFilter {
             log.info("Authentication set in SecurityContext: {}", SecurityContextHolder.getContext().getAuthentication());
 
             // 인증된 사용자 정보를 request 속성에 설정
-            //request.setAttribute("authentication", authentication);
+            request.setAttribute("authentication", authentication);
 
         }
 
