@@ -34,6 +34,9 @@ public class User extends BaseTimeEntity  {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "name", nullable = false)
+    private String name;
+
     @Column(name = "phone", nullable = false, length = 45)
     private String phone;
 
@@ -82,6 +85,7 @@ public class User extends BaseTimeEntity  {
         User user = new User();
         user.email = dto.getEmail();
         user.password = passwordEncoder.encode(dto.getPassword());
+        user.name = dto.getName();
         user.phone = dto.getPhone();
         user.agree_TOS = dto.getAgreeTOS();
         user.agree_PICU = dto.getAgreePICU();
