@@ -36,7 +36,7 @@ class TokenProviderTest {
         Mockito.when(authentication.getName()).thenReturn("testUser");
         Mockito.when(authentication.getAuthorities()).thenAnswer(invocation -> authorities);
 
-        TokenDto token = tokenProvider.generateTokenDto(authentication);
+        TokenDto token = tokenProvider.generateTokenDto(authentication, id, email, name);
 
         assertNotNull(token.getAccessToken());
         assertNotNull(token.getRefreshToken());
@@ -53,7 +53,7 @@ class TokenProviderTest {
         Mockito.when(authentication.getName()).thenReturn("testUser");
         Mockito.when(authentication.getAuthorities()).thenAnswer(invocation -> authorities);
 
-        TokenDto token = tokenProvider.generateTokenDto(authentication);
+        TokenDto token = tokenProvider.generateTokenDto(authentication, id, email, name);
         Authentication auth = tokenProvider.getAuthentication(token.getAccessToken());
 
         assertNotNull(auth);
@@ -71,7 +71,7 @@ class TokenProviderTest {
         Mockito.when(authentication.getName()).thenReturn("testUser");
         Mockito.when(authentication.getAuthorities()).thenAnswer(invocation -> authorities);
 
-        TokenDto token = tokenProvider.generateTokenDto(authentication);
+        TokenDto token = tokenProvider.generateTokenDto(authentication, id, email, name);
         boolean isValid = tokenProvider.validateToken(token.getAccessToken());
 
         assertTrue(isValid);

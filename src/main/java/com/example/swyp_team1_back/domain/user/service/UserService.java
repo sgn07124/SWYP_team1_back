@@ -10,12 +10,8 @@ import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,15 +28,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import static com.example.swyp_team1_back.global.jwt.JwtProperties.EXPIRATION_TIME;
-import static com.nimbusds.oauth2.sdk.token.TokenTypeURI.JWT;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +46,7 @@ public class UserService {
 
 
     private static final String DEFAULT_PROFILE_IMAGE_URL = "https://swyp-team1-s3-bucket.s3.ap-northeast-2.amazonaws.com/default_image.png";
-
+    private final Set<String> usedAuthorizationCodes = Collections.synchronizedSet(new HashSet<>());
 
 
     @Transactional
@@ -140,6 +131,9 @@ public class UserService {
     }
 
     public OauthToken getAccessToken(String code) {
+        if (usedAuthorizationCodes.contains(code)) {
+            throw new IllegalArgumentException("Authorization code has already been used.");
+        }
         String KAKAO_TOKEN_REQUEST_URI = "https://kauth.kakao.com/oauth/token";
 
         RestTemplate restTemplate = new RestTemplate(); //통신에 유용
@@ -164,6 +158,7 @@ public class UserService {
             OauthToken oauthToken = null;
             try {
                 oauthToken = objectMapper.readValue(response.getBody(), OauthToken.class);
+                usedAuthorizationCodes.add(code);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to parse access token response", e);
             }
@@ -173,38 +168,60 @@ public class UserService {
     }
 
     // 회원가입 시 사용자 정보를 저장하고 JWT 토큰을 생성하는 메서드
-    public String saveUserAndGetToken(String token, boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
-        KakaoProfile profile = findProfile(token);
+    public String saveUserAndGetToken(String token) {
+        try {
+            KakaoProfile profile = findProfile(token);
 
-        Optional<User> optionalUser = userRepository.findByEmail(profile.getKakao_account().getEmail());
+            Optional<User> optionalUser = userRepository.findByEmail(profile.getKakao_account().getEmail());
 
-        User user;
-        if (optionalUser.isEmpty()) {
-            user = User.builder()
-                    .phone("000-0000-0000")
-                    .email(profile.getKakao_account().getEmail())
-                    .nickname(profile.getKakao_account().getProfile().getNickname())
-                    .imgUrl(DEFAULT_PROFILE_IMAGE_URL)
-                    .role(Role.ROLE_USER)
-                    .agree_PICU(agreePicu)
-                    .agree_TOS(agreeTos)
-                    .agree_marketing(agreeMarketing)
-                    .from_social(true)
-                    .build();
+            if (optionalUser.isEmpty()) {
+                String email = profile.getKakao_account().getEmail();
+                String nickname = profile.getKakao_account().getProfile().getNickname();
 
-            userRepository.save(user);
-        } else {
-            user = optionalUser.get();
+                // 회원 가입 페이지로 리다이렉트 URL 생성
+                String redirectUrl = String.format(
+                        "https://swyg-front.vercel.app/user/join/kakao?email=%s",
+                        URLEncoder.encode(email, "UTF-8")
+                        //URLEncoder.encode(nickname, "UTF-8")
+                );
+
+                // 리다이렉트 URL 반환
+                return redirectUrl;
+            } else {
+                User user = optionalUser.get();
+
+                // 권한 부여
+                List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
+                Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
+
+                // JWT 생성
+                String jwtToken = tokenProvider.generateTokenDto(authentication).getAccessToken();
+
+                return jwtToken;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("An error occurred while processing the user information", e);
         }
-
-        // 권한 부여
-        List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
-        // Authentication 객체 생성
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
-
-        // JWT 생성
-        return tokenProvider.generateTokenDto(authentication).getAccessToken();
     }
+
+    public void saveUser(CreateUserDTO userDto) {
+        User user = User.builder()
+                .email(userDto.getEmail())
+                .name(userDto.getEmail())
+                .nickname(userDto.getEmail())  // 이메일을 닉네임으로 설정
+                .phone("010-0000-0000")        // 고정된 전화번호
+                .imgUrl(DEFAULT_PROFILE_IMAGE_URL) // 고정된 이미지 URL
+                .role(Role.ROLE_USER)          // 고정된 역할
+                .agree_PICU(userDto.getAgreePICU())
+                .agree_TOS(userDto.getAgreeTOS())
+                .agree_marketing(userDto.getAgreeMarketing())
+                .from_social(true)             // 고정된 소셜 로그인 여부
+                .build();
+
+        userRepository.save(user);
+    }
+
+
 
 
 
@@ -259,6 +276,26 @@ public class UserService {
             throw new RuntimeException("Principal is not an instance of UserDetails");
         }
     }
+
+    public boolean verifyUser(String email, String name, String phone) {
+        return userRepository.existsByEmailAndNameAndPhone(email, name, phone);
+    }
+
+    public boolean changePassword(String email, String newPassword, String confirmPassword) {
+        if (!newPassword.equals(confirmPassword)) {
+            return false;
+        }
+
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setPassword(passwordEncoder.encode(newPassword)); // 비밀번호를 암호화하여 저장
+            userRepository.save(user);
+            return true;
+        }
+        return false;
+    }
+
 
 
 }

@@ -5,6 +5,7 @@ import com.example.swyp_team1_back.global.jwt.JwtAuthenticationEntryPoint;
 import com.example.swyp_team1_back.global.jwt.JwtFilter;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,6 +33,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // CSRF 비활성화
@@ -49,8 +51,8 @@ public class SecurityConfig {
         // 경로별 인가 작업
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup", "/api/user/login", "/api/user/signup/kakao", "/api/user/login/kakao","/error", "/api/board/search", "/api/board/category/{categoryId}").permitAll()
-                        .requestMatchers("/api/user/me").authenticated()
+                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup", "/api/user/login",  "/api/user/login/kakao", "/api/user/join/kakao","/error", "/api/board/search", "/api/board/category/{categoryId}","/api/user/me","api/user/details/pw").permitAll()
+                        .requestMatchers("/api/user/me", "api/user/details/repw").authenticated()
                         .requestMatchers("/api/tip/**").hasRole("USER")
                         .anyRequest().authenticated());
 
@@ -60,12 +62,14 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler));
 
+
         // OAuth2 로그인 설정
         http
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/oauth2/authorization/kakao")
                         .defaultSuccessUrl("/loginSuccess")
                         .failureUrl("/loginFailure"));
+
 
         // JWT 필터 추가
         http.addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
@@ -91,10 +95,10 @@ public class SecurityConfig {
     private ClientRegistration kakaoClientRegistration() {
         return ClientRegistration.withRegistrationId("kakao")
                 .clientId("5d3ed4c53f6081a9a1503e178dfdfaeb")
-                .clientSecret("SazkBcme6hi3TkyhRBBps3Hl0G7rMfcP")
+                .clientSecret("nwJj8WFuyIkYfWsZXmj1dMjevjppA51Y")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .redirectUri("http://15.164.202.203:8080/api/user/login/kakao")
                 .scope("profile_nickname", "account_email")
                 .authorizationUri("https://kauth.kakao.com/oauth/authorize")
                 .tokenUri("https://kauth.kakao.com/oauth/token")

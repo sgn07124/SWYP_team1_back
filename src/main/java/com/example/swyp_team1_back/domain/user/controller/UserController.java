@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -25,13 +24,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -99,8 +101,19 @@ public class UserController {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
         );
+
+        Optional<User> userOptional = userRepository.findByEmail(loginRequestDto.getEmail());
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(401).body("User not found");
+        }
+
         TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
+        //KakaoUserInfoDto userInfoDto = userService.getUser();
+        //UserLoginResponseDto responseDto = new UserLoginResponseDto(tokenDto, userInfoDto);
+
+
         return ResponseEntity.ok(tokenDto);
+
     }
 
 
@@ -108,8 +121,7 @@ public class UserController {
     // 카카오 로그인 엔드포인트 추가
     @GetMapping("/login/kakao")
     @Operation(summary = "카카오 로그인", description = "프론트에서 받은 인가 코드로 카카오 액세스 토큰을 발급받는다.")
-    public ResponseEntity getLogin(@RequestParam("code") String code,
-                                   boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
+    public ResponseEntity getLogin(@RequestParam("code") String code,boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
 
         try {
             // 인가 코드로 카카오 액세스 토큰을 발급받는다.
@@ -117,24 +129,51 @@ public class UserController {
             logger.info("OauthToken: " + oauthToken);
 
             // 카카오 회원정보 디비 저장후 jwt생성
-            String jwtToken = userService.saveUserAndGetToken(oauthToken.getAccess_token(), agreePicu, agreeTos, agreeMarketing);
-            logger.info("JWT Token: " + jwtToken);
+            String result = userService.saveUserAndGetToken(oauthToken.getAccess_token());
+            //logger.info("JWT Token: " + jwtToken);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
-
-            // 로그 추가: 응답 헤더 확인
-            System.out.println("Response Headers: " + headers);
-
-            return ResponseEntity.ok().headers(headers).body("kakao login success");
+            if (result.startsWith("http")) {
+                // 리다이렉트 URL인 경우
+                HttpHeaders headers = new HttpHeaders();
+                headers.setLocation(URI.create(result));
+                return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
+            } else {
+                // JWT 토큰인 경우
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + result);
+                logger.info("JWT Token: " + result);
+                return ResponseEntity.ok().headers(headers).body("kakao login success");
+            }
         } catch (HttpClientErrorException e) {
             // 로그 추가
+            logger.error("HttpClientErrorException: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid authorization code");
         } catch (Exception e) {
             // 기타 예외 처리
+            logger.error("Exception: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+        }
+    }
+
+    @PostMapping("/join/kakao")
+    public ResponseEntity<?> joinUser(@RequestBody CreateUserDTO userDto) {
+        try {
+            userService.saveUser(userDto);
+            // 회원가입 후 JWT 토큰 생성
+            List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
+            Authentication authentication = new UsernamePasswordAuthenticationToken(userDto.getEmail(), null, authorities);
+
+            // JWT 생성
+            String jwtToken = tokenProvider.generateTokenDto(authentication).getAccessToken();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
+            return ResponseEntity.ok().headers(headers).body("User registration successful");
+        } catch (Exception e) {
+            logger.error("Exception in joinUser: " + e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User registration failed");
         }
     }
 
@@ -143,4 +182,29 @@ public class UserController {
         KakaoUserInfoDto kakaoUserInfoDto = userService.getUser();
         return ResponseEntity.ok(kakaoUserInfoDto);
     }
+
+    @GetMapping("/details/pw")
+    @Operation(summary = "비밀번호 재설정", description = "회원은 비밀번호를 재설정하기위해 이메일, 이름, 전화번호로 본인인증을 해야한다.")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetRequestDto requestDto) {
+        boolean isRegistered = userService.verifyUser(requestDto.getEmail(), requestDto.getName(), requestDto.getPhone());
+        if (!isRegistered) {
+            return ResponseEntity.badRequest().body("Invalid User ");
+        }
+
+        return ResponseEntity.ok("User Verified");
+
+    }
+
+    @PatchMapping("/details/repw")
+    @Operation(summary = "비밀번호 재설정", description = "인증된 사용자는 이 엔드포인트를 통해 비밀번호를 재설정할 수 있다.")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordChangeRequestDto requestDto) {
+        boolean isPasswordChanged = userService.changePassword(requestDto.getEmail(), requestDto.getPassword(), requestDto.getRepassword());
+        if (!isPasswordChanged) {
+            return ResponseEntity.badRequest().body("비밀번호 재설정에 실패했습니다.");
+        }
+
+        return ResponseEntity.ok("비밀번호가 성공적으로 재설정되었습니다.");
+    }
+
+
 }
