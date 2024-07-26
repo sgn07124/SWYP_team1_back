@@ -13,11 +13,12 @@ public class PasswordChangeRequestDto {
 
     @NotNull(message = "이메일은 필수 항목입니다.")
     private String email;
+
     @NotNull(message = "새 비밀번호는 필수 항목입니다.")
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", message = "비밀번호는 숫자와 영문을 조합하여 8자 이상으로 적어주세요.")
-    private String newPassword;
+    private String password;
 
     @NotNull(message = "비밀번호 확인은 필수 항목입니다.")
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", message = "비밀번호는 숫자와 영문을 조합하여 8자 이상으로 적어주세요.")
-    private String rePassword;
+    private String repassword;
 }
