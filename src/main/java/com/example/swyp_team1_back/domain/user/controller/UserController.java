@@ -142,7 +142,11 @@ public class UserController {
                 HttpHeaders headers = new HttpHeaders();
                 headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + result);
                 logger.info("JWT Token: " + result);
-                return ResponseEntity.ok().headers(headers).body("kakao login success");
+
+                // 리다이렉트 URL 설정
+                HttpHeaders redirectHeaders = new HttpHeaders();
+                redirectHeaders.setLocation(URI.create("https://swyg-front.vercel.app/my/doing"));
+                return new ResponseEntity<>(redirectHeaders, HttpStatus.SEE_OTHER);
             }
         } catch (HttpClientErrorException e) {
             // 로그 추가
@@ -177,28 +181,34 @@ public class UserController {
         }
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser() {
-        KakaoUserInfoDto kakaoUserInfoDto = userService.getUser();
-        return ResponseEntity.ok(kakaoUserInfoDto);
-    }
 
     @GetMapping("/details/pw")
     @Operation(summary = "비밀번호 재설정", description = "회원은 비밀번호를 재설정하기위해 이메일, 이름, 전화번호로 본인인증을 해야한다.")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetRequestDto requestDto) {
-        boolean isRegistered = userService.verifyUser(requestDto.getEmail(), requestDto.getName(), requestDto.getPhone());
+    public ResponseEntity<String> verifyUser(@RequestHeader("Authorization") String token, @Valid @RequestBody PasswordResetRequestDto requestDto) {
+        // JWT 토큰에서 이메일 추출
+        String email = tokenProvider.getEmailFromToken(token.substring(7));
+
+        boolean isRegistered = userService.verifyUser(email, requestDto.getName(), requestDto.getPhone());
         if (!isRegistered) {
-            return ResponseEntity.badRequest().body("Invalid User ");
+            return ResponseEntity.badRequest().body("Invalid User");
         }
 
         return ResponseEntity.ok("User Verified");
-
     }
+
 
     @PatchMapping("/details/repw")
     @Operation(summary = "비밀번호 재설정", description = "인증된 사용자는 이 엔드포인트를 통해 비밀번호를 재설정할 수 있다.")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordChangeRequestDto requestDto) {
-        boolean isPasswordChanged = userService.changePassword(requestDto.getEmail(), requestDto.getPassword(), requestDto.getRepassword());
+    public ResponseEntity<String> resetPassword(@RequestHeader("Authorization") String token, @Valid @RequestBody PasswordChangeRequestDto requestDto) {
+        // JWT 토큰의 유효성만 검사
+        if (!tokenProvider.validateToken(token.substring(7))) {
+            return ResponseEntity.badRequest().body("Invalid JWT Token");
+        }
+
+        // JWT 토큰에서 이메일 추출
+        String email = tokenProvider.getEmailFromToken(token.substring(7));
+
+        boolean isPasswordChanged = userService.changePassword(email, requestDto.getPassword(), requestDto.getRepassword());
         if (!isPasswordChanged) {
             return ResponseEntity.badRequest().body("비밀번호 재설정에 실패했습니다.");
         }
