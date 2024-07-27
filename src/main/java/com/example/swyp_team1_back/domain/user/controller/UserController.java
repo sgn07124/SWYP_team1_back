@@ -173,8 +173,10 @@ public class UserController {
             String jwtToken = tokenProvider.generateTokenDto(authentication).getAccessToken();
 
             HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(URI.create("https://swyg-front.vercel.app/my/doing"));
             headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
-            return ResponseEntity.ok().headers(headers).body("User registration successful");
+
+            return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
         } catch (Exception e) {
             logger.error("Exception in joinUser: " + e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User registration failed");
