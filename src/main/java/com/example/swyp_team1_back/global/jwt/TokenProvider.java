@@ -143,4 +143,14 @@ public class TokenProvider {
 
         return claims;
     }
+
+    // JWT 토큰에서 이메일 추출
+    public String getEmailFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
 }
