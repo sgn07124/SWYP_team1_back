@@ -35,7 +35,7 @@ public class TipUserController {
 
     private final TipUserService tipUserService;
 
-    @PostMapping()
+    @PostMapping("/submit")
     @Operation(summary = "직접 팁 등록", description = "로그인 한 회원은 직접 팁을 등록할 수 있다. 등록한 팁은 게시판에 공개된다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "팁 등록 성공"),
