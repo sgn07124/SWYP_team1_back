@@ -1,5 +1,6 @@
 package com.example.swyp_team1_back.domain.user.service;
 
+import com.example.swyp_team1_back.domain.user.controller.UserController;
 import com.example.swyp_team1_back.domain.user.dto.*;
 import com.example.swyp_team1_back.domain.user.entity.Role;
 import com.example.swyp_team1_back.domain.user.entity.User;
@@ -10,8 +11,12 @@ import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,6 +49,10 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Autowired
+    private HttpSession session;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private static final String DEFAULT_PROFILE_IMAGE_URL = "https://swyp-team1-s3-bucket.s3.ap-northeast-2.amazonaws.com/default_image.png";
     private final Set<String> usedAuthorizationCodes = Collections.synchronizedSet(new HashSet<>());
@@ -285,6 +294,7 @@ public class UserService {
 
     public boolean changePassword(String email, String newPassword, String confirmPassword) {
         if (!newPassword.equals(confirmPassword)) {
+            logger.debug("New password and confirm password do not match.");
             return false;
         }
 
@@ -293,11 +303,11 @@ public class UserService {
             User user = optionalUser.get();
             user.setPassword(passwordEncoder.encode(newPassword)); // 비밀번호를 암호화하여 저장
             userRepository.save(user);
+            logger.debug("Password successfully changed for user with email: " + email);
             return true;
         }
+        logger.debug("User not found with email: " + email);
         return false;
     }
-
-
 
 }
