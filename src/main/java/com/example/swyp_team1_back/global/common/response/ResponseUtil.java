@@ -25,4 +25,6 @@ public class ResponseUtil {
     public static ResponseEntity<Response<Void>> createExceptionResponse(String message, ErrorCode errorCode, String reason) {
         return createExceptionResponse(message, errorCode, null, reason);
     }
+
+
 }

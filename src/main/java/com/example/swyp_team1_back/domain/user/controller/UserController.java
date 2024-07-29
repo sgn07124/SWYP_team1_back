@@ -4,6 +4,7 @@ import com.example.swyp_team1_back.domain.user.dto.*;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
 import com.example.swyp_team1_back.domain.user.service.UserService;
+import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.common.response.Response;
 import com.example.swyp_team1_back.global.common.response.ResponseUtil;
 import com.example.swyp_team1_back.global.jwt.JwtProperties;
@@ -108,11 +109,10 @@ public class UserController {
     }
 
 
-
     // 카카오 로그인 엔드포인트 추가
     @GetMapping("/login/kakao")
     @Operation(summary = "카카오 로그인", description = "프론트에서 받은 인가 코드로 카카오 액세스 토큰을 발급받는다.")
-    public ResponseEntity getLogin(@RequestParam("code") String code,boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
+    public ResponseEntity getLogin(@RequestParam("code") String code, boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
 
         try {
             // 인가 코드로 카카오 액세스 토큰을 발급받는다.
@@ -176,47 +176,52 @@ public class UserController {
 
 
     @GetMapping("/details/pw")
+    @ApiResponses({
+            @ApiResponse(responseCode = "4001", description = "Validation Error"),
+    })
     @Parameters({
             @Parameter(name = "email", description = "이메일 형식이어야 합니다.", example = "test1@naver.com"),
             @Parameter(name = "name", description = "이름은 한글 또는 영문으로 입력해야 하며, 한글 자음과 모음만 입력할 수 없고, 한글과 영문을 동시에 입력할 수 없습니다."),
             @Parameter(name = "phone", description = "전화번호는 010-****-**** 형식으로 입력해야 합니다. *에는 숫자만 올 수 있습니다.")
     })
     @Operation(summary = "비밀번호 재설정", description = "회원은 비밀번호를 재설정하기위해 이메일, 이름, 전화번호로 본인인증을 해야한다.")
-    public ResponseEntity<String> verifyUser(@Valid @RequestBody PasswordResetRequestDto requestDto) {
-        boolean isRegistered = userService.verifyUser(requestDto.getEmail(), requestDto.getName(), requestDto.getPhone());
-        if (!isRegistered) {
-            return ResponseEntity.badRequest().body("Invalid User");
+    public ResponseEntity<Response<Void>> verifyUser(@Valid @RequestBody PasswordResetRequestDto requestDto) {
+        try {
+            boolean isRegistered = userService.verifyUser(requestDto.getEmail(), requestDto.getName(), requestDto.getPhone());
+            if (!isRegistered) {
+                throw new IllegalArgumentException("유효하지 않은 사용자입니다.");
+            }
+            session.setAttribute("verifiedEmail", requestDto.getEmail());
+            return ResponseUtil.createSuccessResponseWithoutPayload("유효한 사용자입니다.");
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("유효하지 않은 사용자입니다.", ErrorCode.VALIDATION_ERROR, e.getMessage());
         }
-        session.setAttribute("verifiedEmail", requestDto.getEmail());
-        return ResponseEntity.ok("User Verified");
+
     }
 
 
     @PatchMapping("/details/repw")
     @Operation(summary = "비밀번호 재설정", description = "인증된 사용자는 이 엔드포인트를 통해 비밀번호를 재설정할 수 있다.")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordChangeRequestDto requestDto, HttpServletRequest request) {
+    public ResponseEntity<Response<Void>> resetPassword(@Valid @RequestBody PasswordChangeRequestDto requestDto, HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            logger.debug("Session is null. User not authenticated.");
-            return ResponseEntity.status(403).body("본인 인증이 필요합니다.");
+            return ResponseUtil.createExceptionResponse("본인 인증이 필요합니다.", ErrorCode.UNAUTHORIZED, "세션이 존재하지 않습니다.");
         }
 
         String email = (String) session.getAttribute("verifiedEmail");
         if (email == null) {
-            logger.debug("No verified email in session.");
-            return ResponseEntity.status(403).body("Verification is required.");
+            return ResponseUtil.createExceptionResponse("Verification is required.", ErrorCode.UNAUTHORIZED, "검증된 이메일이 세션에 없습니다.");
         }
 
-        logger.debug("Changing password for email: " + email);
 
         boolean isPasswordChanged = userService.changePassword(email, requestDto.getPassword(), requestDto.getRepassword());
         if (!isPasswordChanged) {
-            logger.debug("Password change failed for email: " + email);
-            return ResponseEntity.badRequest().body("Password reset failed.");
+            return ResponseUtil.createExceptionResponse("Password reset failed.", ErrorCode.VALIDATION_ERROR, "비밀번호 변경 실패");
         }
         session.removeAttribute("verifiedEmail");
-        return ResponseEntity.ok("Password has been successfully reset.");
+        return ResponseUtil.createSuccessResponseWithoutPayload("Password has been successfully reset.");
     }
+
 
 
 }
