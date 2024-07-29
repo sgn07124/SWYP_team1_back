@@ -202,6 +202,14 @@ public class UserController {
 
     @PatchMapping("/details/repw")
     @Operation(summary = "비밀번호 재설정", description = "인증된 사용자는 이 엔드포인트를 통해 비밀번호를 재설정할 수 있다.")
+    @Parameters({
+            @Parameter(name = "password", description = "비밀번호는 최소 8자리 이상이어야 합니다.", example = "abcd1234"),
+            @Parameter(name = "rePassword", description = "비밀번호 재확인은 필수 항목입니다."),
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "비밀번호 재설정 성공"),
+            @ApiResponse(responseCode = "4003", description = "비밀번호가 맞지 않습니다. 다시 입력해주세요.(rePassword)")
+    })
     public ResponseEntity<Response<Void>> resetPassword(@Valid @RequestBody PasswordChangeRequestDto requestDto, HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
