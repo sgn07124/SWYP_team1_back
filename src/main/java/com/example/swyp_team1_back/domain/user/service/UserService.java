@@ -66,8 +66,7 @@ public class UserService {
     }
 
     @Transactional
-    public TokenDto login(LoginRequestDto loginRequestDto) {
-        // 사용자 ID로 유저 검색
+    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
         Optional<User> userOptional = userRepository.findByEmail(loginRequestDto.getEmail());
         if (userOptional.isEmpty()) {
             throw new CustomFieldException("email", "없는 이메일입니다.", ErrorCode.EMAIL_NOT_FOUND);
@@ -75,29 +74,32 @@ public class UserService {
 
         User user = userOptional.get();
 
-        // 비밀번호 확인
         if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
-            throw new CustomFieldException("password","비밀번호가 올바르지 않습니다.", ErrorCode.INVALID_PASSWORD);
+            throw new CustomFieldException("password", "비밀번호가 올바르지 않습니다.", ErrorCode.INVALID_PASSWORD);
         }
 
-        // AuthenticationToken 생성
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword());
 
-        // authenticate 메서드가 실행될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드가 실행됨
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
-        // 인증 정보를 기반으로 JWT 토큰 생성
         TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
 
-        // Refresh Token 저장
         RefreshToken refreshToken = RefreshToken.builder()
                 .key(authentication.getName())
                 .value(tokenDto.getRefreshToken())
                 .build();
 
         refreshTokenRepository.save(refreshToken);
-        return tokenDto;
+
+        return LoginResponseDto.builder()
+                .grantType(tokenDto.getGrantType())
+                .accessToken(tokenDto.getAccessToken())
+                .refreshToken(tokenDto.getRefreshToken())
+                .accessTokenExpiresIn(tokenDto.getAccessTokenExpiresIn())
+                .id(user.getId())
+                .nickname(user.getNickname())
+                .build();
     }
 
     @Transactional

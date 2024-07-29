@@ -21,6 +21,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomFieldException.class)
     public ResponseEntity<Response<Void>> handleSignUpFieldException(CustomFieldException ex) {  // CustomFieldException
-        return ResponseUtil.createExceptionResponse("회원가입에 실패하였습니다.", ex.getErrorCode(), ex.getField(), ex.getMessage());
+        String message;
+        if (ex.getErrorCode() == ErrorCode.INVALID_PASSWORD || ex.getErrorCode() == ErrorCode.EMAIL_NOT_FOUND) {
+            message = "로그인에 실패하였습니다.";
+        } else {
+            message = "회원가입에 실패하였습니다.";
+        }
+        return ResponseUtil.createExceptionResponse(message, ex.getErrorCode(), ex.getField(), ex.getMessage());
     }
 }

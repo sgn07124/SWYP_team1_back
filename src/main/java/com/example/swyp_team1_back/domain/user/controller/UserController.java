@@ -98,22 +98,8 @@ public class UserController {
             @Parameter(name = "password", description = "비밀번호는 최소 8자리 이상이어야 합니다.", example = "abcd1234"),
     })
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDto loginRequestDto) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
-        );
-
-        Optional<User> userOptional = userRepository.findByEmail(loginRequestDto.getEmail());
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.status(401).body("User not found");
-        }
-
-        TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
-        //KakaoUserInfoDto userInfoDto = userService.getUser();
-        //UserLoginResponseDto responseDto = new UserLoginResponseDto(tokenDto, userInfoDto);
-
-
-        return ResponseEntity.ok(tokenDto);
-
+        LoginResponseDto loginResponseDto = userService.login(loginRequestDto);
+        return ResponseEntity.ok(loginResponseDto);
     }
 
 
