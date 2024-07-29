@@ -14,10 +14,13 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +52,8 @@ public class UserController {
     private final UserRepository userRepository;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
+    @Autowired
+    private HttpSession session;
 
     @PostMapping("/signup")
     @Operation(summary = "일반 회원가입", description = "회원은 이메일과 비밀번호로 일반 회원가입을 한다.")
@@ -171,37 +176,46 @@ public class UserController {
 
 
     @GetMapping("/details/pw")
+    @Parameters({
+            @Parameter(name = "email", description = "이메일 형식이어야 합니다.", example = "test1@naver.com"),
+            @Parameter(name = "name", description = "이름은 한글 또는 영문으로 입력해야 하며, 한글 자음과 모음만 입력할 수 없고, 한글과 영문을 동시에 입력할 수 없습니다."),
+            @Parameter(name = "phone", description = "전화번호는 010-****-**** 형식으로 입력해야 합니다. *에는 숫자만 올 수 있습니다.")
+    })
     @Operation(summary = "비밀번호 재설정", description = "회원은 비밀번호를 재설정하기위해 이메일, 이름, 전화번호로 본인인증을 해야한다.")
-    public ResponseEntity<String> verifyUser(@RequestHeader("Authorization") String token, @Valid @RequestBody PasswordResetRequestDto requestDto) {
-        // JWT 토큰에서 이메일 추출
-        String email = tokenProvider.getEmailFromToken(token.substring(7));
-
-        boolean isRegistered = userService.verifyUser(email, requestDto.getName(), requestDto.getPhone());
+    public ResponseEntity<String> verifyUser(@Valid @RequestBody PasswordResetRequestDto requestDto) {
+        boolean isRegistered = userService.verifyUser(requestDto.getEmail(), requestDto.getName(), requestDto.getPhone());
         if (!isRegistered) {
             return ResponseEntity.badRequest().body("Invalid User");
         }
-
+        session.setAttribute("verifiedEmail", requestDto.getEmail());
         return ResponseEntity.ok("User Verified");
     }
 
 
     @PatchMapping("/details/repw")
     @Operation(summary = "비밀번호 재설정", description = "인증된 사용자는 이 엔드포인트를 통해 비밀번호를 재설정할 수 있다.")
-    public ResponseEntity<String> resetPassword(@RequestHeader("Authorization") String token, @Valid @RequestBody PasswordChangeRequestDto requestDto) {
-        // JWT 토큰의 유효성만 검사
-        if (!tokenProvider.validateToken(token.substring(7))) {
-            return ResponseEntity.badRequest().body("Invalid JWT Token");
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordChangeRequestDto requestDto, HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            logger.debug("Session is null. User not authenticated.");
+            return ResponseEntity.status(403).body("본인 인증이 필요합니다.");
         }
 
-        // JWT 토큰에서 이메일 추출
-        String email = tokenProvider.getEmailFromToken(token.substring(7));
+        String email = (String) session.getAttribute("verifiedEmail");
+        if (email == null) {
+            logger.debug("No verified email in session.");
+            return ResponseEntity.status(403).body("Verification is required.");
+        }
+
+        logger.debug("Changing password for email: " + email);
 
         boolean isPasswordChanged = userService.changePassword(email, requestDto.getPassword(), requestDto.getRepassword());
         if (!isPasswordChanged) {
-            return ResponseEntity.badRequest().body("비밀번호 재설정에 실패했습니다.");
+            logger.debug("Password change failed for email: " + email);
+            return ResponseEntity.badRequest().body("Password reset failed.");
         }
-
-        return ResponseEntity.ok("비밀번호가 성공적으로 재설정되었습니다.");
+        session.removeAttribute("verifiedEmail");
+        return ResponseEntity.ok("Password has been successfully reset.");
     }
 
 
