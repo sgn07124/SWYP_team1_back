@@ -62,7 +62,19 @@ public class Tip extends BaseTimeEntity {
     @JoinColumn(name = "cateId")  // 주인
     private Category category;
 
-    public static Tip createUserTip(CreateTipDTO dto) {  // 로그인 구현되면 후처리 해야됨
+    public static Tip createUserTip(CreateTipDTO dto) {
+        Tip tip = createTip(dto);
+        tip.isMine = true;
+        return tip;
+    }
+
+    public static Tip createOtherTip(CreateTipDTO dto) {
+        Tip tip = createTip(dto);
+        tip.isMine = false;
+        return tip;
+    }
+
+    private static Tip createTip(CreateTipDTO dto) {
         Tip tip = new Tip();
         tip.tipLink = dto.getTipLink();
         tip.tipTitle = dto.getTipTitle();
@@ -72,7 +84,6 @@ public class Tip extends BaseTimeEntity {
         tip.deadLine_end = LocalDate.parse(dto.getDeadLine_end());
 
         tip.completeYN = false;
-        tip.isMine = true;
         return tip;
     }
 

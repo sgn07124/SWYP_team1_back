@@ -1,5 +1,6 @@
 package com.example.swyp_team1_back.domain.tip.controller;
 
+import com.example.swyp_team1_back.domain.tip.dto.request.CreateTipDTO;
 import com.example.swyp_team1_back.domain.tip.dto.response.BoardTipDTO;
 import com.example.swyp_team1_back.domain.tip.dto.response.TipCompleteYnListDTO;
 import com.example.swyp_team1_back.domain.tip.service.BoardService;
@@ -16,6 +17,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +32,7 @@ import java.util.List;
 public class BoardController {
 
     private final BoardService boardService;
+    private final TipUserService tipUserService;
 
     @GetMapping("/search")
     @Operation(summary = "검색으로 게시글 조회", description = "검색어를 입력하여 관련된 팁들을 무한스크롤로 조회")
@@ -71,6 +76,32 @@ public class BoardController {
             return ResponseUtil.createSuccessResponseWithPayload("카테고리로 팁 조회 성공", response);
         } catch (Exception e) {
             return ResponseUtil.createExceptionResponse("팁 조회 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
+        }
+    }
+
+    @PostMapping("/submit")
+    @Operation(summary = "다른 사람의 팁 등록", description = "로그인 한 회원은 게시판에서 다른 사람이 올린 팁을 등록할 수 있다. 등록한 팁은 게시판에 공개되지 않는다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "팁 등록 성공"),
+            @ApiResponse(responseCode = "3001", description = "팁 등록 실패")
+    })
+    @Parameters({
+            @Parameter(name = "tipLink", description = "링크를 삽입해주세요."),
+            @Parameter(name = "tipTitle", description = "팁의 제목을 적어주세요."),
+            @Parameter(name = "category", description = "카테고리를 설정해주세요."),
+            @Parameter(name = "actCnt", description = "실천 횟수를 적어주세요."),
+            @Parameter(name = "deadLine_start", description = "데드라인을 설정해주세요."),
+            @Parameter(name = "deadLine_end", description = "데드라인을 설정해주세요.")
+    })
+    public ResponseEntity<Response<Void>> createTip(@RequestBody CreateTipDTO dto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        try {
+            tipUserService.createUserTip(dto, username, false);
+            return ResponseUtil.createSuccessResponseWithoutPayload("팁 등록 성공");
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("팁 등록 실패", ErrorCode.FAIL_CREATE_USER_TIP, e.getMessage());
         }
     }
 }

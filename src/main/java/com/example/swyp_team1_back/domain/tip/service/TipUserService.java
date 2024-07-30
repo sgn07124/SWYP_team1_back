@@ -37,17 +37,22 @@ public class TipUserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Tip createUserTip(CreateTipDTO createTipDTO, String email) {
+    public void createUserTip(CreateTipDTO createTipDTO, String email, boolean isMine) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Category category = categoryRepository.findById(createTipDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category ID"));
-        Tip tip = Tip.createUserTip(createTipDTO);
+        Tip tip;
+        if (isMine) {
+            tip = Tip.createUserTip(createTipDTO);
+        } else {
+            tip = Tip.createOtherTip(createTipDTO);
+        }
         tip.setCategory(category);
         tip.setUser(user);
-        return tipRepository.save(tip);
+        tipRepository.save(tip);
     }
 
     @Transactional
