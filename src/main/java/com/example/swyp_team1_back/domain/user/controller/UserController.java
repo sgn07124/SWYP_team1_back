@@ -37,6 +37,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -260,6 +261,34 @@ public class UserController {
         }
     }
 
+    @PatchMapping("/details/nickname")
+    @Operation(summary = "닉네임 수정", description = "사용자는 닉네임을 수정할 수 있습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Nickname updated successfully."),
+            @ApiResponse(responseCode = "4013", description = "Invalid nickname."),
+            @ApiResponse(responseCode = "4012", description = "Nickname already exists."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    public ResponseEntity<Response<Void>> updateNickname(
+            @RequestHeader("Authorization") String token,
+            @RequestBody Map<String, String> requestBody) {
+
+        String newNickname = requestBody.get("nickName");
+        String jwt = token.substring(7);
+
+        if (!tokenProvider.validateToken(jwt)) {
+            return ResponseUtil.createExceptionResponse("Invalid or expired token.", ErrorCode.UNAUTHORIZED, "Token validation failed.");
+        }
+
+        String email = tokenProvider.getEmailFromToken(jwt);
+
+        try {
+            userService.updateNickname(email, newNickname);
+            return ResponseUtil.createSuccessResponseWithoutPayload("닉네임 변경 성공");
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("닉네임 변경 실패", ErrorCode.ILLEGAL_STATE_ERROR, e.getMessage());
+        }
+    }
 
 
 

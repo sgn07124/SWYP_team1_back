@@ -18,6 +18,8 @@ public enum ErrorCode {
     EMAIL_NOT_FOUND(4009, "Email Not Found"),
     INVALID_PASSWORD(4010, "Invalid Password"),
     UNAUTHORIZED(4011, "Unauthorized"),
+    NICKNAME_ALREADY_EXISTS(4012, "Nickname Already Exists"),
+    NICKNAME_CHANGE_FAILED(4013, "Nickname Change Failed"),
     FAIL_CREATE_USER_TIP(3001, "Fail to create user tip"),
     FAIL_FIND_TIP(3002, "Fail to find tip"),
     FAIL_UPDATE_TIP(3003, "Fail to update tip"),
