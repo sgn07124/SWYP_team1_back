@@ -215,7 +215,7 @@ public class UserService {
         }
     }
 
-    public void saveUser(CreateUserDTO userDto) {
+    public User saveUser(CreateUserDTO userDto) {
         User user = User.builder()
                 .email(userDto.getEmail())
                 .name(userDto.getEmail())
@@ -229,7 +229,7 @@ public class UserService {
                 .from_social(true)             // 고정된 소셜 로그인 여부
                 .build();
 
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.swyp_team1_back.domain.user.controller;
 
+import com.example.swyp_team1_back.domain.bookmark.service.BookmarkService;
 import com.example.swyp_team1_back.domain.user.dto.*;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
@@ -52,6 +53,7 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final BookmarkService bookmarkService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
@@ -90,7 +92,8 @@ public class UserController {
                     }).collect(Collectors.toList());
             return ResponseUtil.createValidationErrorResponse("회원가입에 실패하였습니다.", errors);
         }
-        userService.signUp(dto);
+        User user = userService.signUp(dto);
+        bookmarkService.createBookmark(user);  // 회원가입하면 회원만의 북마크도 추가됨
         return ResponseUtil.createSuccessResponseWithoutPayload("회원가입에 성공하였습니다.");
     }
 
@@ -156,7 +159,7 @@ public class UserController {
     @PostMapping("/join/kakao")
     public ResponseEntity<?> joinUser(@RequestBody CreateUserDTO userDto) {
         try {
-            userService.saveUser(userDto);
+            User user = userService.saveUser(userDto);  // 북마크를 추가해야되서 saveUser를 반환값이 생기도록 수정을 했고, User 객체에 저장되도록 수정했습니다.
             // 회원가입 후 JWT 토큰 생성
             List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
             Authentication authentication = new UsernamePasswordAuthenticationToken(userDto.getEmail(), null, authorities);
@@ -168,6 +171,7 @@ public class UserController {
             headers.setLocation(URI.create("https://swyg-front.vercel.app/my/doing"));
             headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
 
+            bookmarkService.createBookmark(user);  // 회원가입하면 회원만의 북마크도 추가됨
             return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
         } catch (Exception e) {
             logger.error("Exception in joinUser: " + e.getMessage(), e);
