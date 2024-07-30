@@ -208,7 +208,8 @@ public class UserController {
     })
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "비밀번호 재설정 성공"),
-            @ApiResponse(responseCode = "4003", description = "비밀번호가 맞지 않습니다. 다시 입력해주세요.(rePassword)")
+            @ApiResponse(responseCode = "4003", description = "비밀번호가 맞지 않습니다. 다시 입력해주세요.(rePassword)"),
+            @ApiResponse(responseCode = "4001", description = "Validation Error")
     })
     public ResponseEntity<Response<Void>> resetPassword(@Valid @RequestBody PasswordChangeRequestDto requestDto, HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -229,6 +230,38 @@ public class UserController {
         session.removeAttribute("verifiedEmail");
         return ResponseUtil.createSuccessResponseWithoutPayload("Password has been successfully reset.");
     }
+
+    @GetMapping("/details")
+    @Operation(summary = "개인정보 조회", description = "로그인된 사용자의 개인정보를 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Success"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<?> getUserDetails(
+            @RequestHeader("Authorization") String token) {
+
+        try {
+            String jwt = token.substring(7); // "Bearer " 제거
+            if (!tokenProvider.validateToken(jwt)) {
+                return ResponseUtil.createExceptionResponse("Invalid or expired token.", ErrorCode.UNAUTHORIZED, "Authorization", "Token validation failed.");
+            }
+
+            String email = tokenProvider.getEmailFromToken(jwt);
+            UserProfileDto userProfile = userService.getUserProfile(email);
+
+            if (userProfile == null) {
+                return ResponseUtil.createExceptionResponse("User not found.", ErrorCode.EMAIL_NOT_FOUND, "email", "No user associated with this email.");
+            }
+
+            return ResponseUtil.createSuccessResponseWithPayload("User details retrieved successfully.", userProfile);
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("Internal server error.", ErrorCode.ILLEGAL_STATE_ERROR, "Exception", e.getMessage());
+        }
+    }
+
+
+
 
 
 

@@ -310,4 +310,13 @@ public class UserService {
         return false;
     }
 
+    public UserProfileDto getUserProfile(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return new UserProfileDto(user.getNickname(), user.getImgUrl());
+        }
+        return null;
+    }
+
 }
