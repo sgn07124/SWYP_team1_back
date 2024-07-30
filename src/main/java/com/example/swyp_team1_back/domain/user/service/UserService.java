@@ -319,4 +319,22 @@ public class UserService {
         return null;
     }
 
+    public void updateNickname(String email, String newNickname) {
+        if (newNickname == null || !newNickname.matches("^[a-zA-Z0-9]{1,8}$")) {
+            throw new IllegalArgumentException("올바르지 않는 닉네임입니다.");
+        }
+
+        if (userRepository.existsByNickname(newNickname)) {
+            throw new IllegalArgumentException("이미 등록된 닉네임입니다.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+        user.setNickname(newNickname);
+        userRepository.save(user);
+    }
+
+
+
 }
