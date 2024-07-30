@@ -29,4 +29,6 @@ public interface TipRepository extends JpaRepository<Tip, Long> {
             "WHERE t.category.id = :categoryId AND t.isMine = true and (:cursor IS NULL OR t.id < :cursor) " +
             "ORDER BY t.regDate DESC ")
     List<Tip> findByCategoryIdAndIsMineTrueAndIdLessThanOrderByRegDateDesc(Long cursor, Pageable pageable, Long categoryId);
+
+    Optional<Tip> findTipById(Long id);
 }
