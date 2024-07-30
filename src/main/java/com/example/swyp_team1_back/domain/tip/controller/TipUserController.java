@@ -54,7 +54,7 @@ public class TipUserController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String username = userDetails.getUsername();
         try {
-            tipUserService.createUserTip(dto, username);
+            tipUserService.createUserTip(dto, username, true);
             return ResponseUtil.createSuccessResponseWithoutPayload("팁 등록 성공");
         } catch (Exception e) {
             return ResponseUtil.createExceptionResponse("팁 등록 실패", ErrorCode.FAIL_CREATE_USER_TIP, e.getMessage());
