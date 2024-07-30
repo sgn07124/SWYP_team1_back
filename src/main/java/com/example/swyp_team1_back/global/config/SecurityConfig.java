@@ -51,7 +51,7 @@ public class SecurityConfig {
         // 경로별 인가 작업
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup", "/api/user/login",  "/api/user/login/kakao", "/api/user/join/kakao","/error", "/api/board/search", "/api/board/category/{categoryId}","/api/user/me","api/user/details/pw", "api/user/details/repw").permitAll()
+                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup", "/api/user/login",  "/api/user/login/kakao", "/api/user/join/kakao","/error", "/api/board/search", "/api/board/category/{categoryId}","/api/user/me","api/user/details/pw", "api/user/details/repw","api/user/details/").permitAll()
                         .requestMatchers("/api/user/me").authenticated()
                         .requestMatchers("/api/tip/**").hasRole("USER")
                         .anyRequest().authenticated());
