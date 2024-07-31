@@ -9,6 +9,7 @@ import com.example.swyp_team1_back.domain.user.repository.UserRepository;
 import com.example.swyp_team1_back.global.common.response.CustomFieldException;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
+import com.example.swyp_team1_back.global.s3.s3Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
@@ -31,8 +32,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.multipart.MultipartFile;
+import com.example.swyp_team1_back.global.s3.s3Service;
 
-
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -56,7 +59,7 @@ public class UserService {
 
     private static final String DEFAULT_PROFILE_IMAGE_URL = "https://swyp-team1-s3-bucket.s3.ap-northeast-2.amazonaws.com/default_image.png";
     private final Set<String> usedAuthorizationCodes = Collections.synchronizedSet(new HashSet<>());
-
+    private final s3Service s3Service;
 
     @Transactional
     public User signUp(CreateUserDTO signUpRequest) {
@@ -335,6 +338,34 @@ public class UserService {
         userRepository.save(user);
     }
 
-//깃허브 액션 테스트용 주석
+    public void updateProfileImage(String email, MultipartFile file) throws IOException {
+        // 이미지 조건 검사
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IOException("이미지 크기는 5MB 이하이어야 합니다.");
+        }
+
+        String contentType = file.getContentType();
+        if (!(contentType.equals("image/png") || contentType.equals("image/jpeg") || contentType.equals("image/jpg"))) {
+            throw new IOException("이미지 유형은 png, jpeg, jpg만 가능합니다.");
+        }
+
+        // 이미지 업로드
+        log.info("Uploading file to S3");
+        String imgUrl = s3Service.uploadFile(file, "profile/");
+
+        // 사용자 정보 업데이트
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다."));
+        user.setImgUrl(imgUrl);
+        userRepository.save(user);
+    }
+
+    public void deleteUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+        userRepository.delete(user);
+    }
+
+
 
 }
