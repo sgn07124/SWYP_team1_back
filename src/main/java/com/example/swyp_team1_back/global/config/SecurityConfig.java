@@ -4,6 +4,8 @@ import com.example.swyp_team1_back.global.jwt.JwtAccessDeniedHandler;
 import com.example.swyp_team1_back.global.jwt.JwtAuthenticationEntryPoint;
 import com.example.swyp_team1_back.global.jwt.JwtFilter;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +25,8 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+
 
 @Configuration
 @EnableWebSecurity
@@ -51,7 +55,7 @@ public class SecurityConfig {
         // 경로별 인가 작업
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup", "/api/user/login",  "/api/user/login/kakao", "/api/user/join/kakao","/error", "/api/board/search", "/api/board/category/{categoryId}","/api/user/me","api/user/details/pw", "api/user/details/repw","api/user/details/", "api/user/details/nickname").permitAll()
+                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup", "/api/user/login",  "/api/user/login/kakao", "/api/user/join/kakao","/error", "/api/board/search", "/api/board/category/{categoryId}","/api/user/me","api/user/details/pw", "api/user/details/repw","api/user/details/", "api/user/details/nickname", "api/user/details/image").permitAll()
                         .requestMatchers("/api/user/me").authenticated()
                         .requestMatchers("/api/tip/**").hasRole("USER")
                         .anyRequest().authenticated());
@@ -72,7 +76,26 @@ public class SecurityConfig {
 
 
         // JWT 필터 추가
-        http.addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
+        http.
+                addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
+
+        // 로그아웃
+        http.
+                logout(logout -> logout
+                .logoutUrl("/api/user/logout")
+                .logoutSuccessUrl("/api/user/login") // 로그아웃 성공시 리다이렉트 주소
+                .invalidateHttpSession(true) // 세션 무효화
+                .deleteCookies("JSESSIONID")
+                        .addLogoutHandler((request, response, authentication) -> {
+                            HttpSession session = request.getSession();
+                            if (session != null) {
+                                session.invalidate();
+                            }
+                        })
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.sendRedirect("https://swyg-front.vercel.app/user/login");
+                })
+                        .deleteCookies("remember-me"));
 
         return http.build();
     }

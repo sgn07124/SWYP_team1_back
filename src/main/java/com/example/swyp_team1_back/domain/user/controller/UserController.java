@@ -30,9 +30,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -289,6 +291,73 @@ public class UserController {
             return ResponseUtil.createExceptionResponse("닉네임 변경 실패", ErrorCode.ILLEGAL_STATE_ERROR, e.getMessage());
         }
     }
+
+    @PatchMapping("/details/image")
+    @Operation(summary = "프로필 이미지 변경", description = "로그인된 사용자의 프로필 이미지를 변경한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Success"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "4001", description = "Validation Error")
+    })
+    public ResponseEntity<?> updateProfileImage(
+            @RequestHeader("Authorization") String token,
+            @RequestParam("file") MultipartFile file) {
+
+        logger.info("Received request to update profile image");
+        String jwt = token.substring(7);
+        if (!tokenProvider.validateToken(jwt)) {
+            return ResponseUtil.createExceptionResponse("Invalid or expired token.", ErrorCode.UNAUTHORIZED, "Token validation failed.");
+        }
+
+        String email = tokenProvider.getEmailFromToken(jwt);
+
+        try {
+            logger.info("Updating profile image for email: {}", email);
+            userService.updateProfileImage(email, file);
+            logger.info("Profile image updated successfully for email: {}", email);
+            return ResponseUtil.createSuccessResponseWithoutPayload("Profile image updated successfully.");
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("Internal server error.", ErrorCode.ILLEGAL_STATE_ERROR, e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/details/delete")
+    @Operation(summary = "회원 탈퇴", description = "로그인된 사용자의 계정을 삭제한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Success"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "4001", description = "Validation Error")
+    })
+    public ResponseEntity<?> deleteUser(
+            @RequestHeader("Authorization") String token) {
+
+        String jwt = token.substring(7);
+        if (!tokenProvider.validateToken(jwt)) {
+            return ResponseUtil.createExceptionResponse("Invalid or expired token.", ErrorCode.UNAUTHORIZED, "Token validation failed.");
+        }
+
+        String email = tokenProvider.getEmailFromToken(jwt);
+
+        try {
+            userService.deleteUser(email);
+            return ResponseUtil.createSuccessResponseWithoutPayload("User account deleted successfully.");
+        } catch (Exception e) {
+            return ResponseUtil.createExceptionResponse("Internal server error.", ErrorCode.ILLEGAL_STATE_ERROR, e.getMessage());
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            logger.info("Logging out user: " + authentication.getName());
+            SecurityContextHolder.clearContext();
+        } else {
+            logger.warn("No user was logged in at the time of logout request.");
+        }
+        return ResponseEntity.ok().build();
+    }
+
 
 
 

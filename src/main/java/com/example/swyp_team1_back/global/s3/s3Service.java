@@ -47,12 +47,14 @@ public class s3Service {
 
         try {
             // S3에 파일 업로드
+            log.info("Uploading file to S3: " + storedFileName);
             amazonS3Client.putObject(bucket, storedFileName, file.getInputStream(), getObjectMetadata(file));
 
             // 업로드된 이미지의 URL 반환
             return amazonS3Client.getUrl(bucket, storedFileName).toString();
 
         } catch (SdkClientException e) {
+            log.error("Error uploading file to S3", e);
             throw new IOException("Error uploading file to S3", e);
         }
     }
