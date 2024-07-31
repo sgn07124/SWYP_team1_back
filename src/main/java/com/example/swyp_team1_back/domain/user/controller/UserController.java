@@ -118,7 +118,7 @@ public class UserController {
     // 카카오 로그인 엔드포인트 추가
     @GetMapping("/login/kakao")
     @Operation(summary = "카카오 로그인", description = "프론트에서 받은 인가 코드로 카카오 액세스 토큰을 발급받는다.")
-    public ResponseEntity getLogin(@RequestParam("code") String code, boolean agreePicu, boolean agreeTos, boolean agreeMarketing) {
+    public ResponseEntity getLogin(@RequestParam("code") String code) {
 
         try {
             // 인가 코드로 카카오 액세스 토큰을 발급받는다.
@@ -127,7 +127,13 @@ public class UserController {
 
             // 카카오 회원정보 디비 저장후 jwt생성
             String result = userService.saveUserAndGetToken(oauthToken.getAccess_token());
-            //logger.info("JWT Token: " + jwtToken);
+            logger.info("JWT Token: " + result);
+
+            if (!result.startsWith("http")) {
+                Authentication authentication = tokenProvider.getAuthentication(result);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.info("SecurityContext에 인증 정보 설정 완료");
+            }
 
             if (result.startsWith("http")) {
                 // 리다이렉트 URL인 경우
@@ -332,22 +338,10 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "4001", description = "Validation Error")
     })
-    public ResponseEntity<?> deleteUser(
-            @RequestHeader("Authorization") String token) {
-
-        String jwt = token.substring(7);
-        if (!tokenProvider.validateToken(jwt)) {
-            return ResponseUtil.createExceptionResponse("Invalid or expired token.", ErrorCode.UNAUTHORIZED, "Token validation failed.");
-        }
-
-        String email = tokenProvider.getEmailFromToken(jwt);
-
-        try {
-            userService.deleteUser(email);
-            return ResponseUtil.createSuccessResponseWithoutPayload("User account deleted successfully.");
-        } catch (Exception e) {
-            return ResponseUtil.createExceptionResponse("Internal server error.", ErrorCode.ILLEGAL_STATE_ERROR, e.getMessage());
-        }
+    public ResponseEntity<String> deleteUser(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        //userService.deleteUser(email);
+        return ResponseEntity.ok("User successfully deleted");
     }
 
     @PostMapping("/logout")
