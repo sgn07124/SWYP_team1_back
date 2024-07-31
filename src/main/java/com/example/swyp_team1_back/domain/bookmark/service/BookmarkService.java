@@ -1,5 +1,6 @@
 package com.example.swyp_team1_back.domain.bookmark.service;
 
+import com.example.swyp_team1_back.domain.bookmark.dto.response.TipListDto;
 import com.example.swyp_team1_back.domain.bookmark.entity.Bookmark;
 import com.example.swyp_team1_back.domain.bookmark.entity.BookmarkTip;
 import com.example.swyp_team1_back.domain.bookmark.repository.BookmarkRepository;
@@ -7,14 +8,19 @@ import com.example.swyp_team1_back.domain.bookmark.repository.BookmarkTipReposit
 import com.example.swyp_team1_back.domain.tip.entity.Tip;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
+import com.example.swyp_team1_back.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +74,26 @@ public class BookmarkService {
         if (bookmarkTipOptional.isEmpty()) throw new IllegalArgumentException("북마크에 팁이 없습니다.");
 
         bookmarkTipRepository.deleteByBookmarkIdAndTipId(bookmark.getId(), tipId);
+    }
+
+    /**
+     * 북마크에서 팁들을 리스트로 조회
+     * @return
+     */
+    @Transactional
+    public List<TipListDto> getBookmarkTips(Long cursor, int pageSize) {
+        Pageable pageable = PageRequest.of(0, pageSize);
+
+        Long userId = getCurrentUserId();
+        Bookmark bookmark = bookmarkRepository.findByUserId(userId);
+
+        System.out.println("Using cursor: " + cursor); // 로그 추가
+
+        // 쿼리를 통해 bookmarkTips를 가져옴
+        List<BookmarkTip> bookmarkTips = bookmarkTipRepository.findByBookmarkIdAndCursor(bookmark.getId(), cursor, pageable);
+        System.out.println("Retrieved bookmarkTips: " + bookmarkTips.size()); // 로그 추가
+
+        return bookmarkTips.stream().map(TipListDto::toEntity).collect(Collectors.toList());
     }
 
     private Long getCurrentUserId() {

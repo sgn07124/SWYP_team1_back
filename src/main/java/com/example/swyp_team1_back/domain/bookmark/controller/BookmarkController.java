@@ -1,5 +1,6 @@
 package com.example.swyp_team1_back.domain.bookmark.controller;
 
+import com.example.swyp_team1_back.domain.bookmark.dto.response.TipListDto;
 import com.example.swyp_team1_back.domain.bookmark.service.BookmarkService;
 import com.example.swyp_team1_back.domain.tip.dto.response.TipCompleteYnListDTO;
 import com.example.swyp_team1_back.domain.tip.entity.Tip;
@@ -77,7 +78,7 @@ public class BookmarkController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/tips")
     @Operation(summary = "북마크의 팁 리스트로 조회", description = "등록한 북마크의 팁들을 리스트로 조회한다. 무한 스크롤이 적용된다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "팁들 조회 성공"),
@@ -87,11 +88,14 @@ public class BookmarkController {
             @Parameter(description = "다음 페이지 조회 시 필요한 커서 값으로 payload의 nextCursor값을 위치시킨다. 처음 조회 시에는 생략", required = false) @RequestParam(value = "cursor", required = false) Long cursor,
             @Parameter(description = "페이지 크기(기본값: 4)로 생략", required = false) @RequestParam(value = "pageSize", defaultValue = "4") int pageSize) {
         try {
-            List<TipCompleteYnListDTO> tips = tipUserService.getFinishTips(cursor, pageSize);
+            System.out.println("Received cursor: " + cursor);
+            List<TipListDto> tips = bookmarkService.getBookmarkTips(cursor, pageSize);
             Long nextCursor = tips.isEmpty() ? null : tips.get(tips.size() - 1).getId();
-            CursorPaginationResponse<TipCompleteYnListDTO> response = new CursorPaginationResponse<>(nextCursor, pageSize, tips);
+
+            CursorPaginationResponse<TipListDto> response = new CursorPaginationResponse<>(nextCursor, pageSize, tips);
             return ResponseUtil.createSuccessResponseWithPayload("팁 조회 성공", response);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseUtil.createExceptionResponse("팁 조회 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
         }
     }
