@@ -8,6 +8,7 @@ import com.example.swyp_team1_back.domain.user.repository.RefreshTokenRepository
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
 import com.example.swyp_team1_back.global.common.response.CustomFieldException;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
+import com.example.swyp_team1_back.global.common.response.ResponseUtil;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import com.example.swyp_team1_back.global.s3.s3Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -360,11 +361,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void deleteUser(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
-        userRepository.delete(user);
-    }
+
 
 
 
