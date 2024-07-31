@@ -62,8 +62,11 @@ public class User extends BaseTimeEntity  {
     @Column(name = "from_social")
     private boolean from_social;
 
+    @Column(name = "isDeleted")
+    private boolean isDeleted = false;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Tip> tips = new ArrayList<>();  // 회원 탈퇴 시, 작성했던 팁들도 삭제
 
     @OneToMany(mappedBy = "user")
@@ -94,7 +97,6 @@ public class User extends BaseTimeEntity  {
         user.role = Role.ROLE_USER;
         user.nickname = dto.getEmail();
         user.imgUrl = defaultProfileImageUrl;
-       // user.loginId = dto.getLoginId();  // 소셜 로그인 ID 설정
         return user;
     }
 
