@@ -25,7 +25,9 @@ public enum ErrorCode {
     FAIL_UPDATE_TIP(3003, "Fail to update tip"),
     FAIL_UPDATE_TIP_ACT_CNT(3004, "Fail to update tip act count"),
     FAIL_FIND_USER(4001, "Fail to find user"),
-    FAIL_ADD_TIP_BOOKMARK(4002, "Fail To Add Tip To Bookmark");
+    FAIL_ADD_TIP_BOOKMARK(4002, "Fail To Add Tip To Bookmark"),
+    FAIL_FIND_BOOKMARK_TIP(4003, "Fail to find tip at bookmark"),
+    FAIL_FIND_BOOKMARK(4004, "Fail to find bookmark");
 
     private final int code;
     private final String message;

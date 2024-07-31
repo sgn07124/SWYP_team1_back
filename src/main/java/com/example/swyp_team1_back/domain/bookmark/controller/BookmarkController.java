@@ -58,16 +58,22 @@ public class BookmarkController {
     }
 
     @DeleteMapping("/{tip_id}")
-    @Operation(summary = "북마크에서 팁 삭제", description = "")
+    @Operation(summary = "북마크에서 팁 삭제", description = "사용자는 북마크에서 필요없는 팁을 삭제할 수 있다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "북마크의 팁 삭제 성공"),
-            @ApiResponse(responseCode = "3002", description = "북마크의 팁 삭제 실패 - 팁을 찾을 수 없음")
+            @ApiResponse(responseCode = "3002", description = "북마크의 팁 삭제 실패 - 팁을 찾을 수 없음"),
+            @ApiResponse(responseCode = "4001", description = "북마크에 팁 삭제 실패 - 사용자를 찾을 수 없음"),
+            @ApiResponse(responseCode = "4003", description = "북마크에 팁 삭제 실패 - 북마크에서 팁을 찾을 수 없음"),
+            @ApiResponse(responseCode = "4004", description = "북마크에 팁 삭제 실패 - 사용자의 북마크를 찾을 수 없음")
     })
     public ResponseEntity<Response<Void>> deleteTip(@PathVariable Long tip_id) {
         try {
+            bookmarkService.deleteTip(tip_id);
             return ResponseUtil.createSuccessResponseWithoutPayload("북마크의 팁 삭제 성공");
-        } catch (Exception e) {
-            return ResponseUtil.createExceptionResponse("북마크의 팁 삭제 실패", ErrorCode.FAIL_FIND_TIP, e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseUtil.createExceptionResponse("북마크의 팁 삭제 실패", ErrorCode.FAIL_FIND_BOOKMARK, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseUtil.createExceptionResponse("북마크에서 팁 삭제 실패", ErrorCode.FAIL_FIND_BOOKMARK_TIP, e.getMessage());
         }
     }
 
