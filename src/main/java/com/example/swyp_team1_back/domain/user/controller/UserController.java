@@ -347,14 +347,7 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            logger.info("Logging out user: " + authentication.getName());
-            SecurityContextHolder.clearContext();
-        } else {
-            logger.warn("No user was logged in at the time of logout request.");
-        }
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok().build();
     }
 
