@@ -15,6 +15,6 @@ public interface BookmarkTipRepository extends JpaRepository<BookmarkTip, Long> 
 
     Optional<BookmarkTip> deleteByBookmarkIdAndTipId(Long bookmarkId, Long TipId);
 
-    @Query("SELECT bt FROM BookmarkTip bt WHERE bt.bookmark.id = :bookmarkId AND (:cursor IS NULL OR bt.tip.id < :cursor) ORDER BY bt.tip.id DESC")
+    @Query("SELECT bt FROM BookmarkTip bt WHERE bt.bookmark.id = :bookmarkId AND (:cursor IS NULL OR bt.tip.id < :cursor) ORDER BY bt.regDate DESC")
     List<BookmarkTip> findByBookmarkIdAndCursor(@Param("bookmarkId") Long bookmarkId, @Param("cursor") Long cursor, Pageable pageable);
 }
