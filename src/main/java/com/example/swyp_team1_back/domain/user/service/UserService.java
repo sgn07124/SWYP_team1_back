@@ -184,7 +184,7 @@ public class UserService {
     }
 
     // 회원가입 시 사용자 정보를 저장하고 JWT 토큰을 생성하는 메서드
-    public String saveUserAndGetToken(String token) {
+    public AuthResponse saveUserAndGetToken(String token) {
         try {
             KakaoProfile profile = findProfile(token);
             Optional<User> optionalUser = userRepository.findByEmail(profile.getKakao_account().getEmail());
@@ -216,7 +216,10 @@ public class UserService {
             // JWT 생성
             String jwtToken = tokenProvider.generateTokenDto(authentication).getAccessToken();
 
-            return jwtToken;
+            AuthResponse authResponse = new AuthResponse(jwtToken, user.getNickname());
+
+            return authResponse;
+
         } catch (Exception e) {
             throw new RuntimeException("An error occurred while processing the user information", e);
         }

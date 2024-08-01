@@ -39,10 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -126,14 +123,12 @@ public class UserController {
             logger.info("OauthToken: " + oauthToken);
 
             // 카카오 회원정보 디비 저장 후 JWT 생성
-            String jwtToken = userService.saveUserAndGetToken(oauthToken.getAccess_token());
-            logger.info("JWT Token: " + jwtToken);
+            AuthResponse authResponse = userService.saveUserAndGetToken(oauthToken.getAccess_token());
+            logger.info("JWT Token: " + authResponse.getJwtToken());
+            logger.info("User Nickname: " + authResponse.getNickname());
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
-            headers.setLocation(URI.create("https://swyg-front.vercel.app/my/doing")); // 리다이렉트 URL 설정
+            return ResponseEntity.ok(authResponse);
 
-            return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
         } catch (HttpClientErrorException e) {
             // 로그 추가
             e.printStackTrace();
