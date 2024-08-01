@@ -1,5 +1,6 @@
 package com.example.swyp_team1_back.domain.user.controller;
 
+import com.example.swyp_team1_back.domain.bookmark.service.BookmarkService;
 import com.example.swyp_team1_back.domain.user.dto.*;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
@@ -55,6 +56,7 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final BookmarkService bookmarkService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
@@ -93,7 +95,8 @@ public class UserController {
                     }).collect(Collectors.toList());
             return ResponseUtil.createValidationErrorResponse("회원가입에 실패하였습니다.", errors);
         }
-        userService.signUp(dto);
+        User user = userService.signUp(dto);
+        bookmarkService.createBookmark(user);  // 회원가입하면 회원만의 북마크도 추가됨
         return ResponseUtil.createSuccessResponseWithoutPayload("회원가입에 성공하였습니다.");
     }
 
@@ -142,6 +145,9 @@ public class UserController {
         }
 
     }
+
+
+
 
     @GetMapping("/details/pw")
     @ApiResponses({

@@ -26,4 +26,9 @@ public class Bookmark {
     @OneToMany(mappedBy = "bookmark")
     private List<BookmarkTip> bookmarkTips = new ArrayList<>();
 
+    public static Bookmark createBookmark(User user) {
+        Bookmark bookmark = new Bookmark();
+        bookmark.user = user;
+        return bookmark;
+    }
 }
