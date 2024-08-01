@@ -127,7 +127,11 @@ public class UserController {
             logger.info("JWT Token: " + authResponse.getJwtToken());
             logger.info("User Nickname: " + authResponse.getNickname());
 
-            return ResponseEntity.ok(authResponse);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.SET_COOKIE, "jwtToken=" + authResponse.getJwtToken() + "; Path=/; HttpOnly;");
+            headers.setLocation(URI.create("https://swyg-front.vercel.app/my/doing"));
+
+            return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);  // 303 See Other로 리다이렉션 수행
 
         } catch (HttpClientErrorException e) {
             // 로그 추가
