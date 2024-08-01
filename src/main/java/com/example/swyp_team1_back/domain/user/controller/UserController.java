@@ -38,6 +38,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -115,77 +116,37 @@ public class UserController {
     }
 
 
-    // 카카오 로그인 엔드포인트 추가
+    // 카카오 로그인 엔드포인트
     @GetMapping("/login/kakao")
     @Operation(summary = "카카오 로그인", description = "프론트에서 받은 인가 코드로 카카오 액세스 토큰을 발급받는다.")
-    public ResponseEntity getLogin(@RequestParam("code") String code) {
-
+    public ResponseEntity<?> getLogin(@RequestParam("code") String code) {
         try {
             // 인가 코드로 카카오 액세스 토큰을 발급받는다.
             OauthToken oauthToken = userService.getAccessToken(code);
             logger.info("OauthToken: " + oauthToken);
 
-            // 카카오 회원정보 디비 저장후 jwt생성
-            String result = userService.saveUserAndGetToken(oauthToken.getAccess_token());
-            logger.info("JWT Token: " + result);
+            // 카카오 회원정보 디비 저장 후 JWT 생성
+            String jwtToken = userService.saveUserAndGetToken(oauthToken.getAccess_token());
+            logger.info("JWT Token: " + jwtToken);
 
-            if (!result.startsWith("http")) {
-                Authentication authentication = tokenProvider.getAuthentication(result);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.info("SecurityContext에 인증 정보 설정 완료");
-            }
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
+            headers.setLocation(URI.create("https://swyg-front.vercel.app/my/doing")); // 리다이렉트 URL 설정
 
-            if (result.startsWith("http")) {
-                // 리다이렉트 URL인 경우
-                HttpHeaders headers = new HttpHeaders();
-                headers.setLocation(URI.create(result));
-                return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
-            } else {
-                // JWT 토큰인 경우
-                HttpHeaders headers = new HttpHeaders();
-                headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + result);
-                logger.info("JWT Token: " + result);
-
-                // 리다이렉트 URL 설정
-                HttpHeaders redirectHeaders = new HttpHeaders();
-                redirectHeaders.setLocation(URI.create("https://swyg-front.vercel.app/my/doing"));
-                return new ResponseEntity<>(redirectHeaders, HttpStatus.SEE_OTHER);
-            }
+            return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
         } catch (HttpClientErrorException e) {
             // 로그 추가
-            logger.error("HttpClientErrorException: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid authorization code");
         } catch (Exception e) {
             // 기타 예외 처리
-            logger.error("Exception: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
+
     }
 
-    @PostMapping("/join/kakao")
-    public ResponseEntity<?> joinUser(@RequestBody CreateUserDTO userDto) {
-        try {
-            User user = userService.saveUser(userDto);  // 북마크를 추가해야되서 saveUser를 반환값이 생기도록 수정을 했고, User 객체에 저장되도록 수정했습니다.
-            // 회원가입 후 JWT 토큰 생성
-            List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
-            Authentication authentication = new UsernamePasswordAuthenticationToken(userDto.getEmail(), null, authorities);
 
-            // JWT 생성
-            String jwtToken = tokenProvider.generateTokenDto(authentication).getAccessToken();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create("https://swyg-front.vercel.app/my/doing"));
-            headers.add(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
-
-            bookmarkService.createBookmark(user);  // 회원가입하면 회원만의 북마크도 추가됨
-            return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
-        } catch (Exception e) {
-            logger.error("Exception in joinUser: " + e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User registration failed");
-        }
-    }
 
 
     @GetMapping("/details/pw")
@@ -336,12 +297,22 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Success"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "4001", description = "Validation Error")
+            @ApiResponse(responseCode = "4001", description = "Validation Error"),
+            @ApiResponse(responseCode = "4008", description = "Illegal State Error")
     })
-    public ResponseEntity<String> deleteUser(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        //userService.deleteUser(email);
-        return ResponseEntity.ok("User successfully deleted");
+    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            String email = authentication.getName();
+            try {
+                userService.deleteUser(email);
+                return ResponseUtil.createSuccessResponseWithoutPayload("User successfully deleted");
+            } catch (Exception e) {
+                return ResponseUtil.createExceptionResponse("Internal server error.", ErrorCode.ILLEGAL_STATE_ERROR, e.getMessage());
+            }
+        } else {
+            return ResponseUtil.createExceptionResponse("No user is logged in.", ErrorCode.UNAUTHORIZED, "Authentication", "No user is logged in at the time of the delete request.");
+        }
     }
 
     @PostMapping("/logout")
