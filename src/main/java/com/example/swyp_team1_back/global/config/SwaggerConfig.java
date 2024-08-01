@@ -42,8 +42,8 @@ public class SwaggerConfig {
 
     private Info apiInfo() {
         return new Info()
-                .title("SWYG Team1 프로젝트 제목") // API의 제목
-                .description("설명설명설명설명설명설명") // API에 대한 설명
+                .title("acTip") // API의 제목
+                .description("다양한 소셜 채널에서 얻은 정보를 저장하고 실천하는 \"소셜 액션 플래너(Social Action Planner\" 입니다.") // API에 대한 설명
                 .version("1.0.0"); // API의 버전
     }
 }
