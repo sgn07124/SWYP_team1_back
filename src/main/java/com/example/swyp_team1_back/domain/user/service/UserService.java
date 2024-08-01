@@ -26,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -186,57 +187,40 @@ public class UserService {
     public String saveUserAndGetToken(String token) {
         try {
             KakaoProfile profile = findProfile(token);
-
             Optional<User> optionalUser = userRepository.findByEmail(profile.getKakao_account().getEmail());
 
+
+            User user;
             if (optionalUser.isEmpty()) {
-                String email = profile.getKakao_account().getEmail();
-                String nickname = profile.getKakao_account().getProfile().getNickname();
-
-                // 회원 가입 페이지로 리다이렉트 URL 생성
-                String redirectUrl = String.format(
-                        "https://swyg-front.vercel.app/user/join/kakao?email=%s",
-                        URLEncoder.encode(email, "UTF-8")
-                        //URLEncoder.encode(nickname, "UTF-8")
-                );
-
-                // 리다이렉트 URL 반환
-                return redirectUrl;
+                user = User.builder()
+                        .email(profile.getKakao_account().getEmail())
+                        .name(profile.getKakao_account().getProfile().getNickname())
+                        .nickname(profile.getKakao_account().getEmail())  // 이메일을 닉네임으로 설정
+                        .phone("010-0000-0000")        // 고정된 전화번호
+                        .imgUrl(DEFAULT_PROFILE_IMAGE_URL) // 고정된 이미지 URL
+                        .role(Role.ROLE_USER)          // 고정된 역할
+                        .agree_PICU(true)  // 기본값 설정, 이후 업데이트 필요
+                        .agree_TOS(true)   // 기본값 설정, 이후 업데이트 필요
+                        .agree_marketing(false) // 기본값 설정, 이후 업데이트 필요
+                        .from_social(true)  // 고정된 소셜 로그인 여부
+                        .build();
+                userRepository.save(user);
             } else {
-                User user = optionalUser.get();
-
-                // 권한 부여
-                List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
-                Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
-
-                // JWT 생성
-                String jwtToken = tokenProvider.generateTokenDto(authentication).getAccessToken();
-
-                return jwtToken;
+                user = optionalUser.get();
             }
+
+            // 권한 부여
+            List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
+            Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
+
+            // JWT 생성
+            String jwtToken = tokenProvider.generateTokenDto(authentication).getAccessToken();
+
+            return jwtToken;
         } catch (Exception e) {
             throw new RuntimeException("An error occurred while processing the user information", e);
         }
     }
-
-    public void saveUser(CreateUserDTO userDto) {
-        User user = User.builder()
-                .email(userDto.getEmail())
-                .name(userDto.getEmail())
-                .nickname(userDto.getEmail())  // 이메일을 닉네임으로 설정
-                .phone("010-0000-0000")        // 고정된 전화번호
-                .imgUrl(DEFAULT_PROFILE_IMAGE_URL) // 고정된 이미지 URL
-                .role(Role.ROLE_USER)          // 고정된 역할
-                .agree_PICU(userDto.getAgreePICU())
-                .agree_TOS(userDto.getAgreeTOS())
-                .agree_marketing(userDto.getAgreeMarketing())
-                .from_social(true)             // 고정된 소셜 로그인 여부
-                .build();
-
-        userRepository.save(user);
-    }
-
-
 
 
 
@@ -360,6 +344,27 @@ public class UserService {
         user.setImgUrl(imgUrl);
         userRepository.save(user);
     }
+
+    public void deleteUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        user.setEmail("deleted_" + user.getId());
+        user.setPassword("");
+        user.setName("");
+        user.setPhone("");
+        user.setImgUrl("");
+        user.setNickname("deleted_" + user.getId());
+        user.setAgree_TOS(false);
+        user.setAgree_PICU(false);
+        user.setAgree_marketing(false);
+        user.setDeleted(true);
+        user.setRole(Role.ROLE_DELETED);
+
+        userRepository.save(user);
+    }
+
+
 
 
 
