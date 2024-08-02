@@ -4,6 +4,7 @@ import com.example.swyp_team1_back.domain.user.controller.UserController;
 import com.example.swyp_team1_back.domain.user.dto.*;
 import com.example.swyp_team1_back.domain.user.entity.Role;
 import com.example.swyp_team1_back.domain.user.entity.User;
+import com.example.swyp_team1_back.domain.user.repository.ImageUrlMapping;
 import com.example.swyp_team1_back.domain.user.repository.RefreshTokenRepository;
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
 import com.example.swyp_team1_back.global.common.response.CustomFieldException;
@@ -60,6 +61,7 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private static final String DEFAULT_PROFILE_IMAGE_URL = "https://swyp-team1-s3-bucket.s3.ap-northeast-2.amazonaws.com/default_image.png";
+    private String UPDATE_PROFILE_IMAGE_URL_PATE = "profileImage/";
     private final Set<String> usedAuthorizationCodes = Collections.synchronizedSet(new HashSet<>());
     private final s3Service s3Service;
 
@@ -348,6 +350,21 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void updateImage(UpdateProfileImageDto dto) throws IOException {
+        Long currentUser = getCurrentUserId();
+        User user = userRepository.findById(currentUser)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        String updateImageUrl = s3Service.uploadFile(dto.getImage(), UPDATE_PROFILE_IMAGE_URL_PATE);
+
+        if (!user.getImgUrl().equals(DEFAULT_PROFILE_IMAGE_URL)) {  // 전에 수정했던 이미지가 기본 이미지와 다르면
+            s3Service.fileDelete(user.getImgUrl());  // 이전 이미지 삭제
+        }
+
+        user.setImgUrl(updateImageUrl);
+        userRepository.save(user);
+    }
+
     public void deleteUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
@@ -367,7 +384,13 @@ public class UserService {
         userRepository.save(user);
     }
 
-
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName(); // UserDetails의 getUsername()이 호출되어 email이 반환됩니다.
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
+        return user.getId();
+    }
 
 
 
