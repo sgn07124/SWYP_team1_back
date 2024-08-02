@@ -2,7 +2,6 @@ package com.example.swyp_team1_back.domain.user.controller;
 
 import com.example.swyp_team1_back.domain.bookmark.service.BookmarkService;
 import com.example.swyp_team1_back.domain.cs.dto.CsRequest;
-import com.example.swyp_team1_back.domain.cs.service.CsService;
 import com.example.swyp_team1_back.domain.user.dto.*;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
@@ -10,7 +9,6 @@ import com.example.swyp_team1_back.domain.user.service.UserService;
 import com.example.swyp_team1_back.global.common.response.ErrorCode;
 import com.example.swyp_team1_back.global.common.response.Response;
 import com.example.swyp_team1_back.global.common.response.ResponseUtil;
-import com.example.swyp_team1_back.global.jwt.JwtProperties;
 import com.example.swyp_team1_back.global.jwt.TokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,10 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -56,7 +51,7 @@ public class UserController {
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final BookmarkService bookmarkService;
-    private final CsService csService;
+    //private final CsService csService;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -329,26 +324,26 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/cs")
-    @Operation(summary = "문의사항 작성", description = "사용자가 문의사항 내용을 보내면 cs 테이블에 저장된다.")
-    public ResponseEntity<?> createCs(@RequestHeader("Authorization") String token, @RequestBody CsRequest csRequest) {
-        try {
-            // JWT 토큰에서 Bearer 부분 제거
-            String jwt = token.substring(7);
-
-            // JWT 토큰에서 사용자 이메일 추출
-            String email = tokenProvider.getEmailFromToken(jwt);
-
-            // CS 서비스 호출하여 문의사항 저장
-            csService.saveCs(email, csRequest.getContents());
-
-            return ResponseEntity.ok("문의사항이 성공적으로 저장되었습니다.");
-        } catch (Exception e) {
-            // 오류 처리
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("문의사항 저장 중 오류가 발생했습니다.");
-        }
-    }
+//    @PostMapping("/cs")
+//    @Operation(summary = "문의사항 작성", description = "사용자가 문의사항 내용을 보내면 cs 테이블에 저장된다.")
+//    public ResponseEntity<?> createCs(@RequestHeader("Authorization") String token, @RequestBody CsRequest csRequest) {
+//        try {
+//            // JWT 토큰에서 Bearer 부분 제거
+//            String jwt = token.substring(7);
+//
+//            // JWT 토큰에서 사용자 이메일 추출
+//            String email = tokenProvider.getEmailFromToken(jwt);
+//
+//            // CS 서비스 호출하여 문의사항 저장
+//            csService.saveCs(email, csRequest.getContents());
+//
+//            return ResponseEntity.ok("문의사항이 성공적으로 저장되었습니다.");
+//        } catch (Exception e) {
+//            // 오류 처리
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("문의사항 저장 중 오류가 발생했습니다.");
+//        }
+//    }
 
 
 

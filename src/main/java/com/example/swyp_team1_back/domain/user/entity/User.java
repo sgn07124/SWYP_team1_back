@@ -69,7 +69,7 @@ public class User extends BaseTimeEntity  {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Tip> tips = new ArrayList<>();  // 회원 탈퇴 시, 작성했던 팁들도 삭제
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<Cs> csList = new ArrayList<>();
 
     public static User createUser(CreateUserDTO dto, PasswordEncoder passwordEncoder, String defaultProfileImageUrl) {
