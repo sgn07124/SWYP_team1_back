@@ -1,6 +1,8 @@
 package com.example.swyp_team1_back.domain.user.controller;
 
 import com.example.swyp_team1_back.domain.bookmark.service.BookmarkService;
+import com.example.swyp_team1_back.domain.cs.dto.CsRequest;
+import com.example.swyp_team1_back.domain.cs.service.CsService;
 import com.example.swyp_team1_back.domain.user.dto.*;
 import com.example.swyp_team1_back.domain.user.entity.User;
 import com.example.swyp_team1_back.domain.user.repository.UserRepository;
@@ -54,6 +56,8 @@ public class UserController {
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final BookmarkService bookmarkService;
+    private final CsService csService;
+
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
@@ -130,8 +134,8 @@ public class UserController {
             HttpHeaders headers = new HttpHeaders();
 
             // JWT 토큰과 닉네임을 쿠키에 추가
-            headers.add(HttpHeaders.SET_COOKIE, "jwtToken=" + authResponse.getJwtToken() + "; Path=/; HttpOnly;");
-            headers.add(HttpHeaders.SET_COOKIE, "nickname=" + URLEncoder.encode(authResponse.getNickname(), "UTF-8") + "; Path=/;");
+            headers.add(HttpHeaders.SET_COOKIE, "jwtToken=" + authResponse.getJwtToken() + "; Path=/; HttpOnly; SameSite=None; Secure");
+            headers.add(HttpHeaders.SET_COOKIE, "nickname=" + URLEncoder.encode(authResponse.getNickname(), "UTF-8") + "; Path=/; SameSite=None; Secure");
 
             // 리다이렉션 URL 설정
             headers.setLocation(URI.create("https://swyg-front.vercel.app/my/doing"));
@@ -155,7 +159,8 @@ public class UserController {
 
     @GetMapping("/details/pw")
     @ApiResponses({
-            @ApiResponse(responseCode = "4001", description = "Validation Error"),
+            @ApiResponse(responseCode = "4001", description = "Password reset failed.`"),
+            @ApiResponse(responseCode = "200", description = "Password has been successfully reset.")
     })
     @Parameters({
             @Parameter(name = "email", description = "이메일 형식이어야 합니다.", example = "test1@naver.com"),
@@ -322,6 +327,27 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/cs")
+    @Operation(summary = "문의사항 작성", description = "사용자가 문의사항 내용을 보내면 cs 테이블에 저장된다.")
+    public ResponseEntity<?> createCs(@RequestHeader("Authorization") String token, @RequestBody CsRequest csRequest) {
+        try {
+            // JWT 토큰에서 Bearer 부분 제거
+            String jwt = token.substring(7);
+
+            // JWT 토큰에서 사용자 이메일 추출
+            String email = tokenProvider.getEmailFromToken(jwt);
+
+            // CS 서비스 호출하여 문의사항 저장
+            csService.saveCs(email, csRequest.getContents());
+
+            return ResponseEntity.ok("문의사항이 성공적으로 저장되었습니다.");
+        } catch (Exception e) {
+            // 오류 처리
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("문의사항 저장 중 오류가 발생했습니다.");
+        }
     }
 
 
