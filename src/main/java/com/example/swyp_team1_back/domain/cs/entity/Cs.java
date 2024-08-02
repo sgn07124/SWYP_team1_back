@@ -24,4 +24,15 @@ public class Cs {
     @JoinColumn(name = "id")  // 주인
     private User user;
 
+    public void setContents(String contents) {
+        this.contents = contents;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+        if (!user.getCsList().contains(this)) {
+            user.getCsList().add(this);
+        }
+    }
+
 }

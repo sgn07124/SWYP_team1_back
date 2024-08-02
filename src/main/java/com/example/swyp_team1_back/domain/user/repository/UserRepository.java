@@ -1,6 +1,7 @@
 package com.example.swyp_team1_back.domain.user.repository;
 
 import com.example.swyp_team1_back.domain.user.entity.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +24,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u SET u.isDeleted = :isDeleted WHERE u.email = :email")
     void updateStatusByEmail(@Param("email") String email, @Param("isDeleted") boolean isDeleted);
 
+    @EntityGraph(attributePaths = {"csList"})
+    Optional<User> findWithCsListByEmail(String email);
 }
