@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -268,7 +269,7 @@ public class UserController {
         }
     }
 
-    @PatchMapping("/details/image")
+    @PatchMapping(value = "/details/image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "프로필 이미지 변경", description = "로그인된 사용자의 프로필 이미지를 변경한다. form-data의 File 형식으로 이미지를 넣어야 한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Success"),
