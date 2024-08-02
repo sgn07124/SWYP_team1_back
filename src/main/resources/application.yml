@@ -39,8 +39,8 @@ cloud:
     s3:
       bucket: swyp-team1-s3-bucket
     credentials:
-      accessKey: AKIA5FTZEK3JYQYPYBNN
-      secretKey: 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
+      accessKey: AKIA5FTZEK3JXEJ3AMSB
+      secretKey: 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
     region:
       static: ap-northeast-2
     stack:

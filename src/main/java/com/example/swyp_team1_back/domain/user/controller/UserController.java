@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.*;
@@ -268,31 +269,23 @@ public class UserController {
     }
 
     @PatchMapping("/details/image")
-    @Operation(summary = "프로필 이미지 변경", description = "로그인된 사용자의 프로필 이미지를 변경한다.")
+    @Operation(summary = "프로필 이미지 변경", description = "로그인된 사용자의 프로필 이미지를 변경한다. form-data의 File 형식으로 이미지를 넣어야 한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Success"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "4001", description = "Validation Error")
+            @ApiResponse(responseCode = "4001", description = "Fail to find user"),
+            @ApiResponse(responseCode = "4008", description = "Illegal State Error")
     })
-    public ResponseEntity<?> updateProfileImage(
-            @RequestHeader("Authorization") String token,
-            @RequestParam("file") MultipartFile file) {
-
-        logger.info("Received request to update profile image");
-        String jwt = token.substring(7);
-        if (!tokenProvider.validateToken(jwt)) {
-            return ResponseUtil.createExceptionResponse("Invalid or expired token.", ErrorCode.UNAUTHORIZED, "Token validation failed.");
-        }
-
-        String email = tokenProvider.getEmailFromToken(jwt);
+    public ResponseEntity<?> updateProfileImage(@RequestParam("image") MultipartFile image) {
 
         try {
-            logger.info("Updating profile image for email: {}", email);
-            userService.updateProfileImage(email, file);
-            logger.info("Profile image updated successfully for email: {}", email);
-            return ResponseUtil.createSuccessResponseWithoutPayload("Profile image updated successfully.");
-        } catch (Exception e) {
-            return ResponseUtil.createExceptionResponse("Internal server error.", ErrorCode.ILLEGAL_STATE_ERROR, e.getMessage());
+            UpdateProfileImageDto dto = new UpdateProfileImageDto(image);
+            userService.updateImage(dto);
+            return ResponseUtil.createSuccessResponseWithoutPayload("이미지 등록 성공");
+        } catch (IOException e) {
+            return ResponseUtil.createExceptionResponse("프로필 이미지 업데이트 중 오류가 발생했습니다.", ErrorCode.ILLEGAL_STATE_ERROR, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseUtil.createExceptionResponse("사용자를 찾을 수 없습니다.", ErrorCode.FAIL_FIND_USER, e.getMessage());
         }
     }
 
