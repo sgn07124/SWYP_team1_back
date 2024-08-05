@@ -128,17 +128,7 @@ public class UserController {
             logger.info("JWT Token: " + authResponse.getJwtToken());
             logger.info("User Nickname: " + authResponse.getNickname());
 
-            HttpHeaders headers = new HttpHeaders();
-
-            // JWT 토큰과 닉네임을 쿠키에 추가
-            headers.add(HttpHeaders.SET_COOKIE, "jwtToken=" + authResponse.getJwtToken() + "; Path=/; HttpOnly; SameSite=None; Secure");
-            headers.add(HttpHeaders.SET_COOKIE, "nickname=" + URLEncoder.encode(authResponse.getNickname(), "UTF-8") + "; Path=/; SameSite=None; Secure");
-
-            // 리다이렉션 URL 설정
-            headers.setLocation(URI.create("https://swyg-front.vercel.app/my/doing"));
-
-            return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);  // 303 See Other로 리다이렉션 수행
-
+            return ResponseEntity.ok(authResponse);
         } catch (HttpClientErrorException e) {
             // 로그 추가
             e.printStackTrace();

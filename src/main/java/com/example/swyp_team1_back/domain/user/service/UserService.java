@@ -328,27 +328,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void updateProfileImage(String email, MultipartFile file) throws IOException {
-        // 이미지 조건 검사
-        if (file.getSize() > 5 * 1024 * 1024) {
-            throw new IOException("이미지 크기는 5MB 이하이어야 합니다.");
-        }
 
-        String contentType = file.getContentType();
-        if (!(contentType.equals("image/png") || contentType.equals("image/jpeg") || contentType.equals("image/jpg"))) {
-            throw new IOException("이미지 유형은 png, jpeg, jpg만 가능합니다.");
-        }
-
-        // 이미지 업로드
-        log.info("Uploading file to S3");
-        String imgUrl = s3Service.uploadFile(file, "profile/");
-
-        // 사용자 정보 업데이트
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다."));
-        user.setImgUrl(imgUrl);
-        userRepository.save(user);
-    }
 
     public void updateImage(UpdateProfileImageDto dto) throws IOException {
         Long currentUser = getCurrentUserId();
