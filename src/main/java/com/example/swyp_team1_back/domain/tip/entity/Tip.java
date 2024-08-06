@@ -98,6 +98,25 @@ public class Tip extends BaseTimeEntity {
         this.deadLine_start = LocalDate.parse(dto.getDeadLine_start());
         this.deadLine_end = LocalDate.parse(dto.getDeadLine_end());
         this.setCategory(category);
+
+        // actCntChecked가 actCnt보다 크면 actCnt와 같게 설정
+        if (this.actCntChecked > this.actCnt) {
+            this.actCntChecked = this.actCnt;
+        }
+
+        updateCompleteStatus();
+    }
+
+    /**
+     * 팁 수정 시, 완료 상태 반영
+     */
+    private void updateCompleteStatus() {
+        if (this.actCntChecked >= this.actCnt) {
+            this.completeYN = true;
+            this.completeRegDate = LocalDateTime.now();
+        } else if (LocalDate.now().isBefore(this.deadLine_end)) {
+            this.completeYN = false;
+        }
     }
 
     public void updateActCntChecked(int actCntChecked) {
