@@ -27,7 +27,7 @@ public class Tip extends BaseTimeEntity {
     @Column(name = "tipTitle", nullable = false)
     private String tipTitle;
 
-    @Column(name = "tipLink", nullable = false)
+    @Column(name = "tipLink", nullable = false, length = 2048)
     private String tipLink;
 
     @Column(name = "deadline_start", nullable = false)
