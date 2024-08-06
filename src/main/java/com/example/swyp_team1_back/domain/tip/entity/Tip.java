@@ -105,6 +105,8 @@ public class Tip extends BaseTimeEntity {
         if (this.actCntChecked == this.actCnt) {  // 데드라인이 남아 있지만, 현재 진행 중인 실천 횟수와 총 실천 횟수가 같아진 경우.
             this.completeYN = true;
             this.completeRegDate = LocalDateTime.now();
+        } else if (this.actCntChecked < this.actCnt && LocalDate.now().isBefore(this.deadLine_end)) {  // 데드라인이 남아 있고, 체크가 다시 해제된 경우
+            this.completeYN = false;
         }
     }
 
