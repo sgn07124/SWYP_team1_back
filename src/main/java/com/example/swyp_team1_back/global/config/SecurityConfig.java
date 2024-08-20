@@ -121,7 +121,7 @@ public class SecurityConfig {
                 .clientSecret("nwJj8WFuyIkYfWsZXmj1dMjevjppA51Y")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://15.164.202.203:8080/api/user/login/kakao")
+                .redirectUri("https://actip.swygbro.com/my/doing")
                 .scope("profile_nickname", "account_email")
                 .authorizationUri("https://kauth.kakao.com/oauth/authorize")
                 .tokenUri("https://kauth.kakao.com/oauth/token")
