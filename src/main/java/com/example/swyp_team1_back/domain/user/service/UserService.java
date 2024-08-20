@@ -156,8 +156,7 @@ public class UserService {
 
         RestTemplate restTemplate = new RestTemplate(); //통신에 유용
         HttpHeaders headers = new HttpHeaders();
-        //headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
