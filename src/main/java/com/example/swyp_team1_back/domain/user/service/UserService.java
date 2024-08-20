@@ -161,7 +161,7 @@ public class UserService {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("client_id", "5d3ed4c53f6081a9a1503e178dfdfaeb"); // 카카오 REST API 키
-        params.add("redirect_uri", "https://actip.swygbro.com/my/doing");
+        params.add("redirect_uri", "http://15.164.202.203:8080/api/user/login/kakao");
         params.add("client_secret", "SazkBcme6hi3TkyhRBBps3Hl0G7rMfcP");
         params.add("code", code);
 
