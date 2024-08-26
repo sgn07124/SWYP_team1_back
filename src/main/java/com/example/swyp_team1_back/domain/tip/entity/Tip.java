@@ -27,7 +27,7 @@ public class Tip extends BaseTimeEntity {
     @Column(name = "tipTitle", nullable = false)
     private String tipTitle;
 
-    @Column(name = "tipLink", nullable = false)
+    @Column(name = "tipLink", nullable = false, length = 2048)
     private String tipLink;
 
     @Column(name = "deadline_start", nullable = false)
@@ -98,6 +98,25 @@ public class Tip extends BaseTimeEntity {
         this.deadLine_start = LocalDate.parse(dto.getDeadLine_start());
         this.deadLine_end = LocalDate.parse(dto.getDeadLine_end());
         this.setCategory(category);
+
+        // actCntChecked가 actCnt보다 크면 actCnt와 같게 설정
+        if (this.actCntChecked > this.actCnt) {
+            this.actCntChecked = this.actCnt;
+        }
+
+        updateCompleteStatus();
+    }
+
+    /**
+     * 팁 수정 시, 완료 상태 반영
+     */
+    private void updateCompleteStatus() {
+        if (this.actCntChecked >= this.actCnt) {
+            this.completeYN = true;
+            this.completeRegDate = LocalDateTime.now();
+        } else if (LocalDate.now().isBefore(this.deadLine_end)) {
+            this.completeYN = false;
+        }
     }
 
     public void updateActCntChecked(int actCntChecked) {
@@ -105,6 +124,8 @@ public class Tip extends BaseTimeEntity {
         if (this.actCntChecked == this.actCnt) {  // 데드라인이 남아 있지만, 현재 진행 중인 실천 횟수와 총 실천 횟수가 같아진 경우.
             this.completeYN = true;
             this.completeRegDate = LocalDateTime.now();
+        } else if (this.actCntChecked < this.actCnt && LocalDate.now().isBefore(this.deadLine_end)) {  // 데드라인이 남아 있고, 체크가 다시 해제된 경우
+            this.completeYN = false;
         }
     }
 
