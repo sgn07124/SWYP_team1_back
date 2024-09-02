@@ -133,22 +133,9 @@ public class UserController {
             session.setAttribute("jwtToken", authResponse.getJwtToken());
             session.setAttribute("nickname", authResponse.getNickname());
 
-            Cookie cookie = new Cookie("jwtToken", authResponse.getJwtToken());
-            cookie.setDomain("actip.swygbro.com");
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true); // HTTPS 환경에서는 true로 설정
-            cookie.setPath("/");
-            cookie.setMaxAge(7 * 24 * 60 * 60); // 7일
-            response.addCookie(cookie);
 
-            // 리다이렉션
-            URI redirectUri = URI.create("https://actip.swygbro.com/my/doing");
-            return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
-
-            // 리다이렉션
-            //URI redirectUri = URI.create("https://actip.swygbro.com/my/doing");
-            //return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
-            //return ResponseEntity.ok(authResponse);
+            // JWT 토큰과 사용자 정보를 JSON으로 반환
+            return ResponseEntity.ok(authResponse);
         } catch (HttpClientErrorException e) {
             // 로그 추가
             e.printStackTrace();
