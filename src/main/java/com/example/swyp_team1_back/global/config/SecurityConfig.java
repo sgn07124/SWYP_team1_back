@@ -57,7 +57,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/api/user/signup", "/api/user/login",  "/api/user/login/kakao", "/api/user/join/kakao","/error", "/api/board/search", "/api/board/category/{categoryId}","/api/user/me","api/user/details/pw", "api/user/details/repw","api/user/details/", "api/user/details/nickname", "api/user/details/image", "api/user/cs").permitAll()
-                        .requestMatchers("/api/user/me").authenticated()
+                        .requestMatchers("/api/user/me", "/my/doing").authenticated()
                         .requestMatchers("/api/tip/**").hasRole("USER")
                         .anyRequest().authenticated());
 
@@ -94,7 +94,7 @@ public class SecurityConfig {
                             }
                         })
                 .logoutSuccessHandler((request, response, authentication) -> {
-                    response.sendRedirect("https://swyg-front.vercel.app/user/login");
+                    response.sendRedirect("https://actip.swygbro.com/user/login");
                 })
                         .deleteCookies("remember-me"));
 
@@ -128,7 +128,7 @@ public class SecurityConfig {
                 .clientSecret("nwJj8WFuyIkYfWsZXmj1dMjevjppA51Y")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://15.164.202.203:8080/api/user/login/kakao")
+                .redirectUri("https://actip.site/api/user/login/kakao")
                 .scope("profile_nickname", "account_email")
                 .authorizationUri("https://kauth.kakao.com/oauth/authorize")
                 .tokenUri("https://kauth.kakao.com/oauth/token")
