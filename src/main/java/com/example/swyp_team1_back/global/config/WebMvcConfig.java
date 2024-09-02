@@ -13,7 +13,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {  // cors 에러 해결
         registry.addMapping("/**")
 
-                .allowedOrigins("https://actip.swygbro.com" , "http://15.164.202.203:8080", "http://15.164.202.203", "http://localhost:3000")
+                .allowedOrigins("https://actip.swygbro.com" , "https://actip.site", "http://localhost:8080", "http://localhost:3000")
                 .allowedMethods("OPTIONS","GET","POST","PUT","DELETE","PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true);

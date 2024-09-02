@@ -16,7 +16,9 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +119,7 @@ public class UserController {
     // 카카오 로그인 엔드포인트
     @GetMapping("/login/kakao")
     @Operation(summary = "카카오 로그인", description = "프론트에서 받은 인가 코드로 카카오 액세스 토큰을 발급받는다.")
-    public ResponseEntity<?> getLogin(@RequestParam("code") String code) {
+    public ResponseEntity<?> getLogin(@RequestParam("code") String code, HttpServletResponse response) {
         try {
             // 인가 코드로 카카오 액세스 토큰을 발급받는다.
             OauthToken oauthToken = userService.getAccessToken(code);
@@ -128,7 +130,26 @@ public class UserController {
             logger.info("JWT Token: " + authResponse.getJwtToken());
             logger.info("User Nickname: " + authResponse.getNickname());
 
-            return ResponseEntity.ok(authResponse);
+            session.setAttribute("jwtToken", authResponse.getJwtToken());
+            session.setAttribute("nickname", authResponse.getNickname());
+
+            Cookie cookie = new Cookie("jwtToken", authResponse.getJwtToken());
+            cookie.setDomain("actip.swygbro.com");
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true); // HTTPS 환경에서는 true로 설정
+            cookie.setMaxAge(7 * 24 * 60 * 60); // 쿠키의 유효기간 설정 (예: 7일)
+
+            // 응답에 쿠키 추가
+            response.addCookie(cookie);
+
+            // 리다이렉션
+            URI redirectUri = URI.create("https://actip.swygbro.com/my/doing");
+            return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
+
+            // 리다이렉션
+            //URI redirectUri = URI.create("https://actip.swygbro.com/my/doing");
+            //return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
+            //return ResponseEntity.ok(authResponse);
         } catch (HttpClientErrorException e) {
             // 로그 추가
             e.printStackTrace();
