@@ -137,9 +137,8 @@ public class UserController {
             cookie.setDomain("actip.swygbro.com");
             cookie.setHttpOnly(true);
             cookie.setSecure(true); // HTTPS 환경에서는 true로 설정
-            cookie.setMaxAge(7 * 24 * 60 * 60); // 쿠키의 유효기간 설정 (예: 7일)
-
-            // 응답에 쿠키 추가
+            cookie.setPath("/");
+            cookie.setMaxAge(7 * 24 * 60 * 60); // 7일
             response.addCookie(cookie);
 
             // 리다이렉션
